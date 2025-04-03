@@ -3,6 +3,7 @@ package io.oz.srv;
 import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.mustnonull;
 import static io.odysz.common.LangExt.mustgt;
+import static io.odysz.common.LangExt.str;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,6 +20,7 @@ import org.eclipse.jetty.util.resource.Resources;
 
 import io.odysz.anson.Anson;
 import io.odysz.common.FilenameUtils;
+import io.odysz.common.Utils;
 
 /**
  * Using a {@link ServletContextHandler} serve static file content from single location
@@ -27,16 +29,52 @@ public class HtmlServer {
 	static final String web_inf = "WEB-INF";
 	static final String config_json = "html-service.json";
 	
+	static WebConfig wcfg;
+
+	public static void jvmStart(String[] args) {
+		try {
+			wcfg = _main(null);
+			Utils.logi("Service stated. Paths: %s", str(wcfg.paths));
+		} catch (Exception e) {
+			e.printStackTrace();
+			wcfg.error(e.getClass().getName(), e.getMessage());
+		}
+	}
+	
+	/**
+	 * Response to SCM stop commands. This is a stub and won't work as
+	 * the method is called in different process than the main process.
+	 * 
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void jvmStop(String[] args) {
+		if (wcfg != null && wcfg.server != null)
+			try {
+				wcfg.server.stop();
+				Utils.logi("Service stopped. %s", str(wcfg.error));
+			} catch (Exception e) {
+				e.printStackTrace();
+				if (wcfg == null)
+					wcfg = new WebConfig();
+				wcfg.error(e.getClass().getName(), e.getMessage());
+			}
+	}
+
     public static void main(String[] args) throws Exception {
+    	_main(args);
+    }
+
+    private static WebConfig _main(String[] args) throws Exception {
         Server server = HtmlServer.newServer();
         server.start();
         server.join();
-    }
+        return wcfg;
+	}
 
-    public static Server newServer() throws IOException {
-    	// debug at src/java/main/webapp
-    	WebConfig wcfg = Anson.fromPath(FilenameUtils.concat(web_inf, config_json));
-    	validate(wcfg);
+	public static Server newServer() throws IOException {
+    	wcfg = Anson.fromPath(FilenameUtils.concat(web_inf, config_json));
+    	valid(wcfg);
 
         Server server = new Server();
         ServerConnector connector = new ServerConnector(server);
@@ -57,6 +95,7 @@ public class HtmlServer {
         Resource baseResource = resourceFactory.newResource(pth0.resource);
 
         if (!Resources.isReadableDirectory(baseResource))
+        	// debug at src/java/main/webapp ?
             throw new FileNotFoundException(f("Unable to find base-resource for [%s]", pth0.resource));
 
         context.setBaseResource(baseResource);
@@ -66,10 +105,11 @@ public class HtmlServer {
         holderPwd.setInitParameter("dirAllowed", pth0.allowDir ? "true" : "false");
         context.addServlet(holderPwd, pth0.path);
 
+        wcfg.server = server;
         return server;
     }
 
-	static void validate(WebConfig wcfg) {
+	static void valid(WebConfig wcfg) {
 		mustnonull(wcfg.paths);
 		mustgt(wcfg.port, 1024);
 		for (ResPath pth : wcfg.paths) {
