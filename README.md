@@ -26,7 +26,7 @@ where the port and path are configured in html-service.json.
 
 * Install the service
 
-For Windows only. Verified on Windows 11, IA64.
+*For Windows only. Verified on Windows 11, IA64.*
 
 Download [commons-daemon-1.4.1-bin-windows.zip](https://downloads.apache.org/commons/daemon/binaries/windows/commons-daemon-1.4.1-bin-windows.zip).
 
