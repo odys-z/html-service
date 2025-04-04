@@ -64,10 +64,22 @@ The file is in folder WEB-INF. Currently only one url path is allowed in *paths*
 
 Changes can only be applied after re-install the service.
 
+Installing and running logs should be created in the current folder, e.g.
+
+```
+    logs/html-service-test-stderr.yyyy-mm-dd.log
+
+    java.io.FileNotFoundException: Unable to find base-resource for [web-dist-0.4]
+	at io.oz.srv.HtmlServer.newServer(HtmlServer.java:99)
+	at io.oz.srv.HtmlServer._main(HtmlServer.java:69)
+	at io.oz.srv.HtmlServer.jvmStart(HtmlServer.java:36)
+```
+
+This is the error in json file shows that the folder *web-dist-0.4* is hasn't been found.
+
 # How to help
 
 I am struggling to find a simple way of testing / serving static html pages.
-See [here](https://odys-z.github.io/notes/topics/winsrv.html)
+See [a quick survey here](https://odys-z.github.io/notes/topics/winsrv.html).
 
 If any better ideas, please leave your comments in the issue section. 
-
