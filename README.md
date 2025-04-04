@@ -67,7 +67,7 @@ Changes can only be applied after re-install the service.
 # How to help
 
 I am struggling to find a simple way of testing / serving static html pages.
-See [here]()
+See [here](https://odys-z.github.io/notes/topics/winsrv.html)
 
 If any better ideas, please leave your comments in the issue section. 
 
