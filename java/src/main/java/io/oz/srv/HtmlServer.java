@@ -52,6 +52,8 @@ public class HtmlServer {
 		if (wcfg != null && wcfg.server != null)
 			try {
 				wcfg.server.stop();
+				wcfg.server.join();
+				// Thread.sleep(1000);
 				Utils.logi("Service stopped. %s", str(wcfg.error));
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -62,13 +64,13 @@ public class HtmlServer {
 	}
 
     public static void main(String[] args) throws Exception {
-    	_main(args);
+    	wcfg = _main(args);
+        wcfg.server.join();
     }
 
     private static WebConfig _main(String[] args) throws Exception {
         Server server = HtmlServer.newServer();
         server.start();
-        server.join();
         return wcfg;
 	}
 

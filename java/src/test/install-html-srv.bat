@@ -4,38 +4,44 @@
 @echo "Run this file from project dir, e.g. src/test/install-html.bat"
 
 @set jar-ver=0.1.0
-@set rel_jar=target\html-web-%jar-ver%.jar
-@set prjdir=%cd%
-@set classpath=%prjdir%\%rel_jar%
+@set jarname=html-web-%jar-ver%.jar
+@set jar=target\%jarname%
+@set workfolder=%cd%
+@set classpath=%workfolder%\%jar%
 @set servic_name=html-service-test
+@set mainclass=HtmlServer
+@set serv_class=io.oz.srv.%mainclass%
+@set web_res=src\main\webapp
 @set prunsrv=src\test\prunsrv.exe
 
 @echo %classpath%
 
-
 @echo "Finding service main class:"
 jar tf %classpath% | findstr "HtmlServer"
 
-%prunsrv% //IS//%servic_name% --Install=%prjdir%\%prunsrv% ^
+%prunsrv% //IS//%servic_name% --Install=%workfolder%\%prunsrv% ^
 --ServiceUser LocalSystem ^
 --Description="html-service-test" ^
 --Jvm=auto ^
---StartPath=%prjdir%\src\main\webapp ^
+--StartPath=%workfolder%\%web_res% ^
 --Classpath=%classpath% ^
 --Startup=auto ^
 --StartMode=jvm ^
---StartClass=io.oz.srv.HtmlServer ^
+--StartClass=%serv_class% ^
 --StartMethod=jvmStart ^
 --JvmOptions=-Dfile.encoding=UTF-8;-Dstdout.encoding=UTF-8;-Dstderr.encoding=UTF-8 ^
---StopMode=java ^
---StopClass=io.oz.syntier.serv.SynotierJettyApp ^
+--StopMode=jvm ^
+--StopClass=%serv_class% ^
 --StopMethod=jvmStop ^
 --StopParams=stop ^
 --LogPath=%cd%\logs ^
 --StdOutput=auto ^
 --StdError=auto
 
+@echo "Finding service main class:"
+jar tf %classpath% | findstr "%mainclass%"
+
 %prunsrv% //ES//%servic_name%
 
-
-@echo "iconv -f GB2312 -t UTF-8 winsrv/logs/commons-daemon.yyyy-mm-dd.log > commons-daemon-utf8.log"
+@echo "Tip for coverting log files' encoding (use VS Code Bash):"
+@echo "iconv -f GB2312 -t UTF-8 logs/commons-daemon.yyyy-mm-dd.log > commons-daemon-utf8.log"
