@@ -5,9 +5,9 @@
 @echo Run this file from project dir, e.g. run: src/installw.bat
 
 if "%~1" == "uninstall" (
-src\test\uninstall-html-srv.bat src\test\prunsrv.exe "html-service test"
+@call src\test\uninstall-html-srv.bat src\test\prunsrv.exe "html-service test"
 ) else (
-src\test\install-html-srv.bat src\test\prunsrv.exe target\html-web-0.1.1.jar "html-service test" src\main\webapp HtmlServer io.oz.srv.HtmlServer
+@call src\test\install-html-srv.bat src\test\prunsrv.exe target\html-web-0.1.1.jar "html-service test" src\main\webapp HtmlServer io.oz.srv.HtmlServer
 )
 
 @echo Tip for coverting log files' encoding (use VS Code Bash):
