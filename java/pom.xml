@@ -3,7 +3,7 @@
   <groupId>io.github.odys-z</groupId>
   <artifactId>html-web</artifactId>
 
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <name>Jetty Embedded for Static HTML</name>
   <description>Simple html sever similar to Python3 http.server module, but suitable for install as a Windows service, via Apache Daemon, procrun.</description>
 

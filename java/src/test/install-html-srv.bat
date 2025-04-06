@@ -1,23 +1,26 @@
-@echo "Download the Procrun.exe binary at Apache Daemon https://downloads.apache.org/commons/daemon/binaries/windows/"
-@echo "see https://commons.apache.org/proper/commons-daemon/binaries.html"
-@echo "Run mvn clean compile package"
-@echo "Run this file from project dir, e.g. src/test/install-html.bat"
+@echo install-html-srv.bat: Don't call this directly, use the wrapper, intatllw.bat.
 
-@set jar-ver=0.1.0
-@set jarname=html-web-%jar-ver%.jar
-@set jar=target\%jarname%
+@echo Usage: src/test/install-html-srv.bat
+@echo   [1]prunsrv(e.g. src\test\prunsrv.exe) [2]jar-name [3]service-name
+@echo   [4]web-root(e.g. src\main\webapp) [5]main-class(HtmlServer) [6]main-package(io.oz.srv.main-class)
+
+
+@set prunsrv=%1
+@set jar=%2
+@set servic_name=%3
+@set web_res=%4
+@set mainclass=%5
+@set serv_class=%6
+
 @set workfolder=%cd%
 @set classpath=%workfolder%\%jar%
-@set servic_name=html-service-test
-@set mainclass=HtmlServer
-@set serv_class=io.oz.srv.%mainclass%
-@set web_res=src\main\webapp
-@set prunsrv=src\test\prunsrv.exe
 
-@echo %classpath%
+@echo Jar package: %classpath%
+@echo mainclass=%mainclass%
+@echo Prunsrv.exe: %prunsrv%
 
 @echo "Finding service main class:"
-jar tf %classpath% | findstr "HtmlServer"
+jar tf %classpath% | findstr "%mainclass%"
 
 %prunsrv% //IS//%servic_name% --Install=%workfolder%\%prunsrv% ^
 --ServiceUser LocalSystem ^
@@ -38,10 +41,4 @@ jar tf %classpath% | findstr "HtmlServer"
 --StdOutput=auto ^
 --StdError=auto
 
-@echo "Finding service main class:"
-jar tf %classpath% | findstr "%mainclass%"
-
 %prunsrv% //ES//%servic_name%
-
-@echo "Tip for coverting log files' encoding (use VS Code Bash):"
-@echo "iconv -f GB2312 -t UTF-8 logs/commons-daemon.yyyy-mm-dd.log > commons-daemon-utf8.log"

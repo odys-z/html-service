@@ -1,9 +1,9 @@
 @set prjdir=%cd%
-@set classpath=%prjdir%\%rel_jar%
-@set html_srv_name=html-service-test
-@set prunsrv=src\test\prunsrv.exe
+@REM @set classpath=%prjdir%\%rel_jar%
+@REM @set html_srv_name=html-service-test
+@set prunsrv=%1
+@set html_srv_name=%2
 
-@set PR_JVMOPTIONS=-Dservice.waitHint=1
 %prunsrv% //SS//%html_srv_name% --StopTimeout=2
 %prunsrv% //DS//%html_srv_name%
 
