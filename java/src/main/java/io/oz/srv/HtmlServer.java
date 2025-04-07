@@ -34,7 +34,7 @@ public class HtmlServer {
 	public static void jvmStart(String[] args) {
 		try {
 			wcfg = _main(null);
-			Utils.logi("Service stated. Paths: %s", str(wcfg.paths));
+			Utils.logi("Html-web service started on port %s,\tpaths: %s", wcfg.port, str(wcfg.paths));
 		} catch (Exception e) {
 			e.printStackTrace();
 			wcfg.error(e.getClass().getName(), e.getMessage());
@@ -54,7 +54,7 @@ public class HtmlServer {
 				wcfg.server.stop();
 				wcfg.server.join();
 				// Thread.sleep(1000);
-				Utils.logi("Service stopped. %s", str(wcfg.error));
+				Utils.logi("Service stopped. %s", wcfg.error == null ? "" : str(wcfg.error));
 			} catch (Exception e) {
 				e.printStackTrace();
 				if (wcfg == null)
