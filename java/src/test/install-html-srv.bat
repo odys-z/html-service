@@ -2,13 +2,13 @@
 
 @echo Usage: src/test/install-html-srv.bat
 @echo   [1]prunsrv(e.g. src\test\prunsrv.exe) [2]jar-name [3]service-name
-@echo   [4]web-root(e.g. src\main\webapp) [5]main-class(HtmlServer) [6]main-package(io.oz.srv.main-class)
+@echo   [4]resource-path(or web-root, e.g. src\main\webapp) [5]main-class(HtmlServer) [6]main-package(io.oz.srv.main-class)
 
 
 @set prunsrv=%1
 @set jar=%2
 @set servic_name=%3
-@set web_res=%4
+@set res_path=%4
 @set mainclass=%5
 @set serv_class=%6
 
@@ -24,9 +24,9 @@ jar tf %classpath% | findstr "%mainclass%"
 
 %prunsrv% //IS//%servic_name% --Install=%workfolder%\%prunsrv% ^
 --ServiceUser LocalSystem ^
---Description="html-service-test" ^
+--Description="Synode %seric_name%" ^
 --Jvm=auto ^
---StartPath=%workfolder%\%web_res% ^
+--StartPath=%workfolder%\%res_path% ^
 --Classpath=%classpath% ^
 --Startup=auto ^
 --StartMode=jvm ^
