@@ -22,7 +22,19 @@ Now visit:
     http://127.0.0.1:{port}/{path}
 ````
 
-where the port and path are configured in html-service.json. 
+where the port and the (relative from webapp) path are configured in html-service.json. 
+
+* Or Test Without Eclipse
+
+```
+    cd java
+    mvn clean compile package
+    cd src/main/webapp
+    java -jar ../../../target/html-web-0.1.2.jar
+    # Ctrl+C for quite
+```
+
+# Install as a Windows Service
 
 * Install the service
 

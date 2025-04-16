@@ -3,7 +3,7 @@
   <groupId>io.github.odys-z</groupId>
   <artifactId>html-web</artifactId>
 
-  <version>0.1.1</version>
+  <version>0.1.2</version>
   <name>Jetty Embedded for Static HTML</name>
   <description>Simple html sever similar to Python3 http.server module, but suitable for install as a Windows service, via Apache Daemon, procrun.</description>
 
@@ -90,7 +90,7 @@
   </dependencies>
 
   <build>
-    <finalName>jserv-album-${project.version}</finalName>
+    <finalName>html-web-${project.version}</finalName>
     <pluginManagement>
      <plugins>
      <plugin>
@@ -105,6 +105,18 @@
       <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.8.0</version>
+      </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.4.2</version> <!-- Or the latest version -->
+          <configuration>
+            <archive>
+              <manifest>
+                <mainClass>io.oz.srv.HtmlServer</mainClass> <!-- Replace with your main class's fully qualified name -->
+              </manifest>
+            </archive>
+          </configuration>
       </plugin>
       <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
