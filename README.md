@@ -87,7 +87,7 @@ Installing and running logs should be created in the current folder, e.g.
 	at io.oz.srv.HtmlServer.jvmStart(HtmlServer.java:36)
 ```
 
-This is the error in json file shows that the folder *web-dist-0.4* hasn't been found.
+This is the error in json file showing that the folder *web-dist-0.4* hasn't been found.
 
 # How to help
 
