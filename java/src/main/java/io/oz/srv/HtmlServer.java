@@ -1,6 +1,7 @@
 package io.oz.srv;
 
 import static io.odysz.common.LangExt.f;
+import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.mustnonull;
 import static io.odysz.common.LangExt.mustgt;
 import static io.odysz.common.LangExt.str;
@@ -70,6 +71,13 @@ public class HtmlServer {
 
     private static WebConfig _main(String[] args) throws Exception {
         Server server = HtmlServer.newServer();
+        
+        if (!isNull(wcfg.startHandler))
+			((IResUpdater) Class.forName(wcfg.startHandler[0])
+				.getDeclaredConstructor()
+				.newInstance())
+				.onStartup(wcfg);
+
         server.start();
         return wcfg;
 	}
@@ -81,6 +89,7 @@ public class HtmlServer {
         Server server = new Server();
         ServerConnector connector = new ServerConnector(server);
         connector.setPort(wcfg.port);
+        connector.setHost("0.0.0.0");
         server.addConnector(connector);
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -111,6 +120,7 @@ public class HtmlServer {
         return server;
     }
 
+	
 	static void valid(WebConfig wcfg) {
 		mustnonull(wcfg.paths);
 		mustgt(wcfg.port, 1024);

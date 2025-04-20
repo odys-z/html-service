@@ -1,4 +1,5 @@
 {"type": "io.oz.srv.WebConfig",
- "port": 8901,
- "paths": [{"path": "/", "resource": "../../../../../anclient/examples/example.js/album/web-dist"}]
+ "port": 8900,
+ "paths": [{"path": "/", "resource": "../../../../../anclient/examples/example.js/album/web-dist"}],
+ "startHandler": ["io.oz.srv.JservLocalHandler", "private/host.json", "http://%s:8964/jserv-album"]
 }

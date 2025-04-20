@@ -14,6 +14,12 @@ public class WebConfig extends Anson {
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	String[] error;
+
+	/**
+	 * Resource handler's class name and its args,
+	 * which implements {@link io.oz.srv.IResUpdater}.
+	 */
+	String[] startHandler;
 	
 	public WebConfig() {}
 
