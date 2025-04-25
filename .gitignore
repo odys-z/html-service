@@ -28,5 +28,3 @@ hs_err_pid*
 replay_pid*
 java/src/main/webapp/*
 !java/src/main/webapp/WEB-INF
-
-test-dist

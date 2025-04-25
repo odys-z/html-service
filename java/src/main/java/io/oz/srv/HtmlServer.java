@@ -97,7 +97,7 @@ public class HtmlServer {
         	public boolean checkAlias(String pctx, Resource r) { return true; }
         });
 
-        context.setWelcomeFiles(new String[]{"index.html", "index.htm"});
+        context.setWelcomeFiles(isNull(wcfg.welcomepages) ? new String[]{"index.html"} : wcfg.welcomepages);
 
         // default path
         ResPath pth0 = wcfg.paths[0];

@@ -1,5 +1,8 @@
-{"type": "io.oz.srv.WebConfig",
- "port": 8900,
- "paths": [{"path": "/", "resource": "../../../../../anclient/examples/example.js/album/web-dist"}],
- "startHandler": ["io.oz.srv.JservLocalHandler", "private/host.json", "http://%s:8964/jserv-album"]
+{ "type": "io.oz.srv.WebConfig",
+  "port": 8901,
+  "paths": [{"path": "/", "resource": "../../../../../anclient/examples/example.js/album/web-dist"}],
+  "welcomepages": [],
+  "startHandler": ["io.oz.srv.JservLocalHandler", "private/host.json",
+    "X29",  "http://%s:8964/jserv-album",
+    "Y201", "http://example.com/jserv-album"]
 }
