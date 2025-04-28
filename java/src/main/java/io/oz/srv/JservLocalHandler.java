@@ -9,7 +9,7 @@ import java.net.InetAddress;
 import io.odysz.anson.Anson;
 import io.odysz.anson.JsonOpt;
 import io.odysz.common.FilenameUtils;
-import io.oz.syntier.srv.ExternalHosts;
+import io.oz.syntier.serv.ExternalHosts;
 
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.Utils.logi;
@@ -48,14 +48,6 @@ public class JservLocalHandler implements IResUpdater {
 
 		logi("Updating %s ...", host_json);
 
-//		String jserv = f(wcfg.startHandler[2], ip);
-//
-//		File file = new File(host_json);
-//        File parentDir = file.getParentFile();
-//        if (parentDir != null && !parentDir.exists()) {
-//            parentDir.mkdirs(); // Create parent directories if they don't exist
-//        }
-
         ExternalHosts hosts;
         try {
         	hosts = Anson.fromPath(host_json);
@@ -63,11 +55,8 @@ public class JservLocalHandler implements IResUpdater {
         	e.printStackTrace();
         	hosts = new ExternalHosts();
         }
-        hosts.localip = ip;
 
-//        for (int argx = 2; wcfg.startHandler != null && argx < wcfg.startHandler.length; argx += 2)
-//        	hosts.syndomx.put(wcfg.startHandler[argx], f(wcfg.startHandler[argx+1], ip));
-//
+        hosts.localip = ip;
         hosts.toFile(host_json, JsonOpt.beautify());
 	}
 }

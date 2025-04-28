@@ -1,4 +1,4 @@
-package io.oz.syntier.srv;
+package io.oz.syntier.serv;
 
 import java.util.HashMap;
 
@@ -22,8 +22,10 @@ public class ExternalHosts extends Anson {
 	public String localip;
 
 	public HashMap<String, String> syndomx;
+	public HashMap<String, String> resources;
 
 	public ExternalHosts() {
 		syndomx = new HashMap<String, String>();
+		resources = new HashMap<String, String>();
 	}
 }
