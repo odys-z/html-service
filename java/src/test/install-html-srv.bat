@@ -1,4 +1,5 @@
 @echo install-html-srv.bat: Don't call this directly, use the wrapper, intatllw.bat.
+@echo Don't use space in service name.
 
 @echo Usage: src/test/install-html-srv.bat
 @echo   [1]prunsrv(e.g. src\test\prunsrv.exe) [2]jar-name [3]service-name
@@ -24,7 +25,7 @@ jar tf %classpath% | findstr "%mainclass%"
 
 %prunsrv% //IS//%servic_name% --Install=%workfolder%\%prunsrv% ^
 --ServiceUser LocalSystem ^
---Description="Synode %seric_name%" ^
+--Description="Synode %servic_name% %jar%" ^
 --Jvm=auto ^
 --StartPath=%workfolder%\%res_path% ^
 --Classpath=%classpath% ^

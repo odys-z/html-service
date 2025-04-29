@@ -34,7 +34,7 @@ public class HtmlServer {
 
 	public static void jvmStart(String[] args) {
 		try {
-			wcfg = _main(null);
+			wcfg = _main(args);
 			Utils.logi("Html-web service started on port %s,\tpaths: %s", wcfg.port, str(wcfg.paths));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -106,7 +106,6 @@ public class HtmlServer {
         Resource baseResource = resourceFactory.newResource(pth0.resource);
 
         if (!Resources.isReadableDirectory(baseResource))
-        	// debug at src/java/main/webapp ?
             throw new FileNotFoundException(f("Unable to find base-resource for [%s]", pth0.resource));
 
         context.setBaseResource(baseResource);
