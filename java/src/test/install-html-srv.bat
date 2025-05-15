@@ -24,7 +24,7 @@
 jar tf %classpath% | findstr "%mainclass%"
 
 @echo
-@echo Confirm permissions (in the hidden dialogs) to install the service %servic_name%...
+@echo Confirm permission (in the hidden dialog) to install the service %servic_name%...
 
 @%prunsrv% //IS//%servic_name% --Install=%workfolder%\%prunsrv% ^
 --ServiceUser LocalSystem ^

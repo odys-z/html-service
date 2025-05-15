@@ -1,5 +1,5 @@
 { "type": "io.oz.srv.WebConfig",
-  "port": 8901,
+  "port": 1984,
   "paths": [{"path": "/", "resource": "../../../../../anclient/examples/example.js/album/web-dist"}],
   "welcomepages": [],
   "startHandler": ["io.oz.srv.JservLocalHandler", "private/host.json",
