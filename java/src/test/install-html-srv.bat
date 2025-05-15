@@ -23,7 +23,10 @@
 @echo "Finding service main class:"
 jar tf %classpath% | findstr "%mainclass%"
 
-%prunsrv% //IS//%servic_name% --Install=%workfolder%\%prunsrv% ^
+@echo
+@echo Confirm permissions (in the hidden dialogs) to install the service %servic_name%...
+
+@%prunsrv% //IS//%servic_name% --Install=%workfolder%\%prunsrv% ^
 --ServiceUser LocalSystem ^
 --Description="Synode %servic_name% %jar%" ^
 --Jvm=auto ^
@@ -42,4 +45,4 @@ jar tf %classpath% | findstr "%mainclass%"
 --StdOutput=auto ^
 --StdError=auto
 
-%prunsrv% //ES//%servic_name%
+@%prunsrv% //ES//%servic_name%
