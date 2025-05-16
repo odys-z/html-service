@@ -23,8 +23,10 @@
 @echo "Finding service main class:"
 jar tf %classpath% | findstr "%mainclass%"
 
-@echo
-@echo Confirm permission (in the hidden dialog) to install the service %servic_name%...
+@echo:
+@echo ACTION NEEDED!
+@echo:
+@echo Please confirm permission (in the hidden dialog) to install the service %servic_name%...
 
 @%prunsrv% //IS//%servic_name% --Install=%workfolder%\%prunsrv% ^
 --ServiceUser LocalSystem ^
