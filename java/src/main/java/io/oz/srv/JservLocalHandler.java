@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.Date;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.JsonOpt;
+import io.odysz.common.DateFormat;
 import io.odysz.common.FilenameUtils;
 import io.oz.syntier.serv.ExternalHosts;
 
@@ -56,7 +58,7 @@ public class JservLocalHandler implements IResUpdater {
         	hosts = new ExternalHosts();
         }
 
-        logi("Replace host ip with local Ip, %s <- %s.", hosts.localip, ip);
+        logi("%s Replace host ip with local Ip, %s <- %s.", DateFormat.formatime(new Date()), hosts.localip, ip);
         hosts.localip = ip;
         hosts.toFile(host_json, JsonOpt.beautify());
        	logi(hosts.toBlock(JsonOpt.beautify()));
