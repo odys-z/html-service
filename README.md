@@ -20,7 +20,7 @@ Now visit:
 
 ```
     http://127.0.0.1:{port}/{path}
-````
+```
 
 where the port and the (relative from webapp) path are configured in html-service.json. 
 
@@ -32,6 +32,32 @@ where the port and the (relative from webapp) path are configured in html-servic
     cd src/main/webapp
     java -jar ../../../target/html-web-0.1.2.jar
     # Ctrl+C for quite
+```
+
+# Configure resource paths (v 0.1.7)
+
+WEB-INF/html-service.josn:
+
+```
+    "paths": [
+        {"path": "/*", "resource": "./pm/home"},
+        {"path": "/facts/*", "resource": "./pm/products"},
+        {"path": "/album-web/*", "resource": "$ALBUM_WEB/web-dist"}
+    ]
+```
+
+where *$ALBUM_WEB* is a environment variable. Starting the server with
+
+```
+    java -DALBUM_WEB=../../../../../../anclient/examples/example.js/album -jar html-web-0.1.7.jar 
+```
+the actual path of resources (on Windows 11) are:
+
+```
+    root path(/): [abolute-path]\html-service\java\src\main\webapp\.
+    /*:           ./pm/home -> [abolute-path]\html-service\java\src\main\webapp\pm\home
+    /facts/*:     ./pm/products -> [abolute-path]\html-service\java\src\main\webapp\pm\products
+    /album-web/*: $ALBUM_WEB/web-dist -> [abolute-path]\anclient\examples\example.js\album\web-dist
 ```
 
 # Install as a Windows Service

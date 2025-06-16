@@ -2,17 +2,21 @@ package io.oz.srv;
 
 import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.mustnonull;
 import static io.odysz.common.LangExt.mustgt;
 import static io.odysz.common.LangExt.str;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import org.eclipse.jetty.ee10.servlet.DefaultServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.AliasCheck;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.resource.Resource;
@@ -20,6 +24,7 @@ import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.resource.Resources;
 
 import io.odysz.anson.Anson;
+import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.Utils;
 
@@ -70,7 +75,7 @@ public class HtmlServer {
     }
 
     private static WebConfig _main(String[] args) throws Exception {
-        Server server = HtmlServer.newServer();
+        Server server = HtmlServer.multiReserver();
         
         if (!isNull(wcfg.startHandler))
 			((IResUpdater) Class.forName(wcfg.startHandler[0])
@@ -82,7 +87,12 @@ public class HtmlServer {
         return wcfg;
 	}
 
-	public static Server newServer() throws IOException {
+    /**
+     * @deprecated
+     * @return
+     * @throws IOException
+     */
+	public static Server newServer0() throws IOException {
     	wcfg = Anson.fromPath(FilenameUtils.concat(web_inf, config_json));
     	valid(wcfg);
 
@@ -103,12 +113,12 @@ public class HtmlServer {
         ResPath pth0 = wcfg.paths[0];
         context.setContextPath(pth0.path);
         ResourceFactory resourceFactory = ResourceFactory.of(context);
-        Resource baseResource = resourceFactory.newResource(pth0.resource);
+        Resource res0 = resourceFactory.newResource(pth0.resource);
 
-        if (!Resources.isReadableDirectory(baseResource))
+        if (!Resources.isReadableDirectory(res0))
             throw new FileNotFoundException(f("Unable to find base-resource for [%s]", pth0.resource));
 
-        context.setBaseResource(baseResource);
+        context.setBaseResource(res0);
         server.setHandler(context);
 
         ServletHolder holderPwd = new ServletHolder("default", DefaultServlet.class);
@@ -119,6 +129,50 @@ public class HtmlServer {
         return server;
     }
 
+	public static Server multiReserver() throws FileNotFoundException, IOException {
+    	wcfg = Anson.fromPath(FilenameUtils.concat(web_inf, config_json));
+    	valid(wcfg);
+
+        Server server = new Server();
+        ServerConnector connector = new ServerConnector(server);
+        connector.setPort(wcfg.port);
+        connector.setHost("0.0.0.0");
+        server.addConnector(connector);
+
+		 ServletContextHandler servletHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		 servletHandler.setContextPath("/");
+
+		 String absdir = Paths.get(".").toAbsolutePath().toString();
+		 ServletHolder aHolder = new ServletHolder("servlet0", DefaultServlet.class);
+
+//		 if (isblank(wcfg.rootres)) {
+			 Utils.logi("root path: %s", absdir);
+			 aHolder.setInitParameter("resourceBase", absdir);
+//		 }
+//		 else {
+//			 String res = EnvPath.decodeUri(absdir, wcfg.rootres);
+//			 Utils.logi("root path: %s -> %s", wcfg.rootres, res);
+//			 aHolder.setInitParameter("resourceBase", res);
+//		 }
+		 aHolder.setInitParameter("pathInfoOnly", "true");
+		 servletHandler.addServlet(aHolder, "/");
+
+		 if (!isNull(wcfg.paths))
+		 for (ResPath pth : wcfg.paths) {
+			 aHolder = new ServletHolder("servlet" + Math.random(), DefaultServlet.class);
+			 String res = EnvPath.decodeUri(absdir, pth.resource);
+			 Utils.logi("%s: %s -> %s", pth.path, pth.resource, res);
+			 aHolder.setInitParameter("resourceBase", res);
+			 aHolder.setInitParameter("pathInfoOnly", "true");
+			 servletHandler.addServlet(aHolder, pth.path);
+		 }
+
+		 // Set handler and start server
+		 server.setHandler(servletHandler);
+        
+        wcfg.server = server;
+        return server;
+	}
 	
 	static void valid(WebConfig wcfg) {
 		mustnonull(wcfg.paths);

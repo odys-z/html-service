@@ -6,6 +6,7 @@ import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
 
 public class WebConfig extends Anson {
+
 	ResPath[] paths;
 	int port;
 

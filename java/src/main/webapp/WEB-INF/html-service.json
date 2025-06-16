@@ -1,6 +1,9 @@
 { "type": "io.oz.srv.WebConfig",
   "port": 1984,
-  "paths": [{"path": "/", "resource": "./pm/products"}],
+  "paths": [
+  	{"path": "/*", "resource": "./pm/home"},
+  	{"path": "/facts/*", "resource": "./pm/products"},
+  	{"path": "/album-web/*", "resource": "$ALBUM_WEB/web-dist"}],
   "welcomepages": [],
   "startHandler": []
 }
