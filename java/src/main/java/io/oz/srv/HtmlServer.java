@@ -2,12 +2,10 @@ package io.oz.srv;
 
 import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.isNull;
-import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.mustnonull;
 import static io.odysz.common.LangExt.mustgt;
 import static io.odysz.common.LangExt.str;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -16,7 +14,6 @@ import org.eclipse.jetty.ee10.servlet.DefaultServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.AliasCheck;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.resource.Resource;
@@ -145,15 +142,8 @@ public class HtmlServer {
 		 String absdir = Paths.get(".").toAbsolutePath().toString();
 		 ServletHolder aHolder = new ServletHolder("servlet0", DefaultServlet.class);
 
-//		 if (isblank(wcfg.rootres)) {
-			 Utils.logi("root path: %s", absdir);
-			 aHolder.setInitParameter("resourceBase", absdir);
-//		 }
-//		 else {
-//			 String res = EnvPath.decodeUri(absdir, wcfg.rootres);
-//			 Utils.logi("root path: %s -> %s", wcfg.rootres, res);
-//			 aHolder.setInitParameter("resourceBase", res);
-//		 }
+		 Utils.logi("root path: %s", absdir);
+		 aHolder.setInitParameter("resourceBase", absdir);
 		 aHolder.setInitParameter("pathInfoOnly", "true");
 		 servletHandler.addServlet(aHolder, "/");
 
@@ -167,7 +157,6 @@ public class HtmlServer {
 			 servletHandler.addServlet(aHolder, pth.path);
 		 }
 
-		 // Set handler and start server
 		 server.setHandler(servletHandler);
         
         wcfg.server = server;
