@@ -1,6 +1,6 @@
 { "type": "io.oz.syntier.serv.ExternalHosts",
   "host": "X29",
-  "localip": "192.168.0.41",
+  "localip": "192.168.0.201",
   "resources": {},
   "syndomx": {"Y201": "http://example.com/jserv-album",
       "domain": "zsu",
