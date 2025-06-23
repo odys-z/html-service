@@ -7,7 +7,7 @@
 if "%~1" == "uninstall" (
 @call src\test\uninstall-html-srv.bat src\test\prunsrv.exe "html-service test"
 ) else (
-@call src\test\install-html-srv.bat src\test\prunsrv.exe target\html-web-0.1.1.jar "html-service test" src\main\webapp HtmlServer io.oz.srv.HtmlServer
+@call src\test\install-html-srv.bat src\test\prunsrv.exe target\html-web-0.1.7.jar "html-service test" src\main\webapp HtmlServer io.oz.srv.HtmlServer
 )
 
 @echo Tip for coverting log files' encoding (use VS Code Bash):
