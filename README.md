@@ -60,6 +60,47 @@ the actual path of resources (on Windows 11) are:
     /album-web/*: $ALBUM_WEB/web-dist -> [abolute-path]\anclient\examples\example.js\album\web-dist
 ```
 
+# Template for add a Linux service
+
+/etc/systemd/system/html.service
+
+```
+    [Unit]
+    Description=Simple static HTML Page Service
+    Documentation=https://github.com/odys-z/html-service/
+
+    [Service]
+    User=admin
+    WorkingDirectory=absolute-path-to/html-service/java/src/main/webapp
+    ExecStart=java -jar absolute-path-to/html-service/java/src/main/webapp/html-web-0.1.7.jar
+    Restart=on-failure
+    RestartPreventExitStatus=23
+
+    [Install]
+    WantedBy=multi-user.target
+```
+
+FYI
+
+```
+    dpkg -l | grep openssh-server # show package
+    sudo apt install openssh-server # install
+
+    sudo chmod 644 /etc/systemd/system/myapp.service
+    sudo systemctl daemon-reload
+    systemctl status ssh
+    systemctl status ssh.socket
+    sudo netstat -tulnp | grep :22
+    sudo ufw delete allow ssh
+```
+
+Steps to Stop sshd Completely
+
+```
+    sudo systemctl stop ssh
+    sudo systemctl stop ssh.socket
+```
+
 # Install as a Windows Service
 
 * Install the service
