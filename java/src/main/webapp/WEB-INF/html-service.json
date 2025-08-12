@@ -3,7 +3,7 @@
   "paths": [
   	{"path": "/*", "resource": "../../../../../../pm/landing"},
   	{"path": "/facts/*", "resource": "../../../../../../pm/products"},
-  	{"path": "/album-web/*", "resource": "$ALBUM_WEB/web-dist"}],
+  	{"path": "/album-web/*", "resource": "$HOME/github/anclient/examples/example.js/album/web-dist"}],
   "welcomepages": [],
   "startHandler": []
 }
