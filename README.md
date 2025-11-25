@@ -60,8 +60,6 @@ the actual path of resources (on Windows 11) are:
     /album-web/*: $ALBUM_WEB/web-dist -> [abolute-path]\anclient\examples\example.js\album\web-dist
 ```
 
-TODO
-
 In 0.1.8, defining an environment variable starting wiht Linux user home tilde symbol, ~,
 e.g. -Dv_name=~/... will not working. But Html-service can handling *$HOME* variable.
 
