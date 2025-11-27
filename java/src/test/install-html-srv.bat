@@ -12,6 +12,7 @@
 @set res_path=%4
 @set mainclass=%5
 @set serv_class=%6
+@set jre_path=%7
 
 @set workfolder=%cd%
 @set classpath=%workfolder%\%jar%
@@ -28,10 +29,12 @@ jar tf %classpath% | findstr "%mainclass%"
 @echo:
 @echo Please confirm permission (in the hidden dialog) to install the service %servic_name%...
 
+@echo jvm=%jre_path% # jre17/bin/jvm.dll
+
 @%prunsrv% //IS//%servic_name% --Install=%workfolder%\%prunsrv% ^
 --ServiceUser LocalSystem ^
 --Description="Synode %servic_name% %jar%" ^
---Jvm=auto ^
+--Jvm=%jre_path% ^
 --StartPath=%workfolder%\%res_path% ^
 --Classpath=%classpath% ^
 --Startup=auto ^
