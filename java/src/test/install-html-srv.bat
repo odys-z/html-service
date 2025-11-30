@@ -3,7 +3,9 @@
 
 @echo Usage: src/test/install-html-srv.bat
 @echo   [1]prunsrv(e.g. src\test\prunsrv.exe) [2]jar-name [3]service-name
-@echo   [4]resource-path(or web-root, e.g. src\main\webapp) [5]main-class(HtmlServer) [6]main-package(io.oz.srv.main-class)
+@echo   [4]resource-path(or web-root, e.g. src\main\webapp)
+@echo   [5]main-class(HtmlServer) [6]main-package(io.oz.srv.main-class)
+@echo   [7]jre-path
 
 
 @set prunsrv=%1
@@ -13,6 +15,7 @@
 @set mainclass=%5
 @set serv_class=%6
 @set jre_path=%7
+if %jre_path%=="" @set jre_path=auto
 
 @set workfolder=%cd%
 @set classpath=%workfolder%\%jar%
