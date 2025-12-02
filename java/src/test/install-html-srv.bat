@@ -19,11 +19,7 @@
 @set serv_class=%6
 @echo [6 jserv-class]  = %6
 @set jre_path=%7
-<<<<<<< HEAD
 @echo [7 jre-path]     = %7
-=======
-if %jre_path%=="" @set jre_path=auto
->>>>>>> 96099a22e431fc136c2366031a367a267632040f
 
 @set workfolder=%cd%
 
