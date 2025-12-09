@@ -1,10 +1,10 @@
 @echo install-html-srv.bat: Don't call this directly, use the wrapper, intatllw.bat.
 @echo Don't use space in service name.
 
-@echo Usage: src/test/install-html-srv.bat
-@echo   [1]prunsrv(e.g. src\test\prunsrv.exe) [2]jar-name [3]service-name
-@echo   [4]resource-path(or web-root, e.g. src\main\webapp) [5]main-class(HtmlServer) [6]main-package(io.oz.srv.main-class)
-@echo   [7]jvm option, the jre path(optional, e.g. jre17), relative to the workfolder. If not given, use 'auto'.
+@REM Usage: src/test/install-html-srv.bat
+@REM   [1]prunsrv(e.g. src\test\prunsrv.exe) [2]jar-name [3]service-name
+@REM   [4]resource-path(or web-root, e.g. src\main\webapp) [5]main-class(HtmlServer) [6]main-package(io.oz.srv.main-class)
+@REM   [7]jvm option, the jre path(optional, e.g. jre17), relative to the workfolder. If not given, use 'auto'.
 
 @set prunsrv=%1
 @echo [1 prunsrv]      = %1
@@ -33,8 +33,8 @@ if not "%~7" == "" (
 @echo mainclass=%mainclass%
 @echo Prunsrv.exe: %prunsrv%
 
-@echo "Finding service main class:"
-jar tf %classpath% | findstr "%mainclass%"
+@REM echo "Finding service main class:"
+@REM jar tf %classpath% | findstr "%mainclass%"
 @echo jvm=%jre_path% # jre17/bin/server/jvm.dll
 
 @echo:
