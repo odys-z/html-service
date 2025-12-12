@@ -5,7 +5,6 @@
   	{"path": "/facts/*", "resource": "../../../../../../pm/products"},
   	{"path": "/album-web/*", "resource": "$HOME/github/anclient/examples/example.js/album/web-dist"},
   	{"path": "/jre-17/*", "resource": "$HOME/github/JRE-Mirror/temurin17-binaries"},
-  	{"path": "/portfolio-0.7/*", "resource": "$HOME/github/semantic-jserv/jserv-album/build-0.7.7"},
   	{"path": "/products/*", "resource": "$HOME/github/odys-z.github.io/landings"}],
   "welcomepages": [],
   "startHandler": []
