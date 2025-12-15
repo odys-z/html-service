@@ -6,7 +6,21 @@ A light-weight java web server, used for registering as Windows Service, based u
 
 * Setup with the binary release
 
-  Download the latest jar and configure it as a system service. That's all you need if not interested in help.
+  Download the latest jar and configure it as a system service.
+
+```
+    webapp
+       - WEB-INF/html-settings.json
+       - html-service-#.#.#.jar
+```
+
+To start, configure the html-settings.json, and
+
+```
+    java -jar html-service-#.#.#.jar
+```
+
+  That's all you need if not interested in help.
 
 * Test the Java application
 
