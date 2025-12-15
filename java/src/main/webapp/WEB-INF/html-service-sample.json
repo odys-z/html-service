@@ -1,7 +1,7 @@
 { "type": "io.oz.srv.WebConfig",
   "port": 1984,
   "paths": [
-  	{"path": "/*", "resource": "../../../../../../pm/landing"},
+  	{"path": "/*", "resource": "../../../../../../pm/home"},
   	{"path": "/facts/*", "resource": "../../../../../../pm/products"},
   	{"path": "/album-web/*", "resource": "$HOME/github/anclient/examples/example.js/album/web-dist"},
   	{"path": "/jre-17/*", "resource": "$HOME/github/JRE-Mirror/temurin17-binaries"},
