@@ -8,23 +8,27 @@ A light-weight java web server, used for registering as Windows Service, based u
 
   Download the latest jar and configure it as a system service.
 
-```
+  ```
     webapp
        - WEB-INF/html-settings.json
        - html-service-#.#.#.jar
-```
+  ```
 
 To start, configure the html-settings.json, and
 
-```
-    java -jar html-service-#.#.#.jar
-```
-
+  ```
+    # check the release section for latest download links
+    curl https://github.com/odys-z/html-service/releases/download/0.1.8/html-web-0.1.8.jar -o html-service-0.1.8.jar
+    curl https://github.com/odys-z/html-service/releases/download/0.1.8/html-service.json -o WEB-INF/html-service.js
+    java -jar html-service-0.1.8.jar
+  ```
+  If everythings are working, The console will report actually mapped resources paths to local the file system.
+  
   That's all you need if not interested in help.
 
 * Test the Java application
 
-```
+  ```
     git clone
     Eclipse -> Open Exist Projects from File System
     Create Debug Instance (Run -> Debug Configuration, create a Java application), set working folder to src/main/webapp
@@ -32,25 +36,25 @@ To start, configure the html-settings.json, and
     Place some html page in the folder
     Update the Maven project
     Run the Debug application
-```
+  ```
 
 Now visit:
 
-```
+  ```
     http://127.0.0.1:{port}/{path}
-```
+  ```
 
 where the port and the (relative from webapp) path are configured in html-service.json. 
 
 * Or Test Without Eclipse
 
-```
+  ```
     cd java
     mvn clean compile package
     cd src/main/webapp
     java -jar ../../../target/html-web-0.1.2.jar
     # Ctrl+C for quite
-```
+  ```
 
 # Configure resource paths (v 0.1.7)
 
@@ -137,56 +141,74 @@ Steps to Stop sshd Completely
 
 * Install the service
 
-*For Windows only. Verified on Windows 11, IA64.*
+  *For Windows only. Verified on Windows 11, IA64.*
 
-Download [commons-daemon-1.4.1-bin-windows.zip](https://downloads.apache.org/commons/daemon/binaries/windows/commons-daemon-1.4.1-bin-windows.zip).
+  Download [commons-daemon-1.4.1-bin-windows.zip](https://downloads.apache.org/commons/daemon/binaries/windows/commons-daemon-1.4.1-bin-windows.zip).
 
-Check the jdk-17/bin/server/jvm.dll property, unzip the correct version, WIN32 or AMD64
-prunmgr.exe into html-service/java.
+  Check the jdk-17/bin/server/jvm.dll property, unzip the correct version, WIN32 or AMD64
+  prunmgr.exe into html-service/java.
 
-```
+  ```
     mvn clean compile package
     src/test/install-html-srv.bat
-```
+  ```
 
-Allow the installation and trust the previlege requires. There should be the
-service, *html-service-test*, in the Windows Service Control. Then open a browser
-and visit the page.
+  Allow the installation and trust the previlege requires. There should be the
+  service, *html-service-test*, in the Windows Service Control. Then open a browser
+  and visit the page.
 
-Alternatively, the release section provides a package that includes everything.
-Download and unzip it, then in the folder, run
+  Alternatively, the release section provides a package that includes everything.
+  Download and unzip it, then in the folder, run
 
-```
+  ```
     src/test/install-html-srv.bat
-```
+  ```
 
 
 * uninstall the service
 
-In html-service/java folder, run
+  In html-service/java folder, run
 
-```
+  ```
     src/test/install-html-srv.bat
-```
+  ```
 
 * Configure html-service.json
 
-The file is in folder WEB-INF. Currently only one url path is allowed in *paths*.
+  The file is in folder WEB-INF. Currently only one url path is allowed in *paths*.
 
-Changes can only be applied after re-install the service.
+  Changes can only be applied after re-install the service.
 
-Installing and running logs should be created in the current folder, e.g.
+  Installing and running logs should be created in the current folder, e.g.
 
-```
+  ```
     logs/html-service-test-stderr.yyyy-mm-dd.log
 
     java.io.FileNotFoundException: Unable to find base-resource for [web-dist-0.4]
 	at io.oz.srv.HtmlServer.newServer(HtmlServer.java:99)
 	at io.oz.srv.HtmlServer._main(HtmlServer.java:69)
 	at io.oz.srv.HtmlServer.jvmStart(HtmlServer.java:36)
-```
+  ```
 
-This is the error in json file showing that the folder *web-dist-0.4* hasn't been found.
+  This is the error in json file showing that the folder *web-dist-0.4* hasn't been found.
+
+* Removing the service
+
+  Since the service doesn't depend on any system packages, it can be removed thoroughly from the systems:
+
+  ```
+    su
+    systemctl stop html-web.service
+    systemctl disable html-web.service
+    systemctl cat html-web.sercie
+    # /etc/systemd/system/html-web.service
+    rm /etc/systemd/system/html-web.service
+    systemctl daemon-reload
+    systemctl reset-failed
+
+    # check with
+    systemctl list-units
+  ```
 
 # How to help
 
