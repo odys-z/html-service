@@ -1,0 +1,9 @@
+{ "type": "io.oz.srv.WebConfig",
+  "port": 1984,
+  "paths": [
+  	{"path": "/*", "resource": "../../../../../../pm/home"},
+  	{"path": "/album-web/*", "resource": "$HOME/github/album/web-dist"},
+  	{"path": "/jre-17/*", "resource": "$HOME/github/JRE-Mirror/temurin17-binaries"}],
+  "welcomepages": [],
+  "startHandler": []
+}
