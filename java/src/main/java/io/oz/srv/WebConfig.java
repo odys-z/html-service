@@ -10,9 +10,6 @@ public class WebConfig extends Anson {
 	ResPath[] paths;
 	int port;
 
-//	@AnsonField(ignoreTo=true, ignoreFrom=true)
-//	String synode;
-	
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	Server server;
 
