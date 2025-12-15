@@ -4,6 +4,10 @@ A light-weight java web server, used for registering as Windows Service, based u
 
 # Quick Start
 
+* Setup with the binary release
+
+  Download the latest jar and configure it as a system service. That's all you need if not interested in help.
+
 * Test the Java application
 
 ```
@@ -61,7 +65,11 @@ the actual path of resources (on Windows 11) are:
 ```
 
 In 0.1.8, defining an environment variable starting wiht Linux user home tilde symbol, ~,
-e.g. -Dv_name=~/... will not working. But Html-service can handling *$HOME* variable.
+e.g. 
+```
+   -Dv_name=~/...
+```
+will not working. But Html-service can handling *$HOME* variable.
 
 Here is an example:
 
