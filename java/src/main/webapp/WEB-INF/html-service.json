@@ -1,11 +1,9 @@
 { "type": "io.oz.srv.WebConfig",
   "port": 1984,
   "paths": [
-  	{"path": "/*", "resource": "../../../../../../pm/landing"},
-  	{"path": "/facts/*", "resource": "../../../../../../pm/products"},
-  	{"path": "/album-web/*", "resource": "$HOME/github/anclient/examples/example.js/album/web-dist"},
-  	{"path": "/jre-17/*", "resource": "$HOME/github/JRE-Mirror/temurin17-binaries"},
-  	{"path": "/products/*", "resource": "$HOME/github/odys-z.github.io/landings"}],
+  	{"path": "/*", "resource": "../../../../../../pm/home"},
+  	{"path": "/album-web/*", "resource": "$HOME/github/album/web-dist"},
+  	{"path": "/jre-17/*", "resource": "$HOME/github/JRE-Mirror/temurin17-binaries"}],
   "welcomepages": [],
   "startHandler": []
 }
