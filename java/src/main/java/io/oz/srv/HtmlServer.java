@@ -132,11 +132,14 @@ public class HtmlServer {
 
 		 ServletContextHandler servletHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		 servletHandler.setContextPath("/");
+		 servletHandler.setWelcomeFiles(isNull(wcfg.welcomepages) ? new String[]{"index.html"} : wcfg.welcomepages);
 
 		 String absdir = Paths.get(".").toAbsolutePath().toString();
 		 ServletHolder aHolder = new ServletHolder("servlet0", DefaultServlet.class);
 
 		 Utils.logi("root path: %s", absdir);
+		 Utils.logi("port     : %s", wcfg.port);
+
 		 aHolder.setInitParameter("resourceBase", absdir);
 		 aHolder.setInitParameter("pathInfoOnly", "true");
 		 servletHandler.addServlet(aHolder, "/");
