@@ -3,6 +3,7 @@
   "paths": [
   	{"path": "/*", "resource": "../../../../../../pm/home"},
   	{"path": "/album-web/*", "resource": "$HOME/github/album/web-dist"},
+  	{"path": "/x-test/*", "resource": "$HOME/github/x-visual"},
   	{"path": "/jre-17/*", "resource": "$HOME/github/JRE-Mirror/temurin17-binaries"}],
   "welcomepages": [],
   "startHandler": []
