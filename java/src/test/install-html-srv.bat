@@ -45,7 +45,7 @@ if not "%~7" == "" (
 
 @%prunsrv% //IS//%servic_name% --Install=%workfolder%\%prunsrv% ^
 --ServiceUser LocalSystem ^
---Description="Synode %servic_name% %jar%" ^
+--Description="Synode %servic_name% [%jar%]" ^
 --Jvm=%jre_path% ^
 --StartPath=%workfolder%\%res_path% ^
 --Classpath=%classpath% ^
