@@ -58,7 +58,7 @@ public class JservLocalHandler implements IResUpdater {
         	hosts = new ExternalHosts();
         }
 
-        logi("%s Replace host ip with local Ip, %s <- %s.", DateFormat.formatime(new Date()), hosts.localip, ip);
+        logi("%s Replace host ip with local Ip, %s <- %s.", DateFormat.formatime_utc(new Date()), hosts.localip, ip);
         hosts.localip = ip;
         hosts.toFile(host_json, JsonOpt.beautify());
        	logi(hosts.toBlock(JsonOpt.beautify()));

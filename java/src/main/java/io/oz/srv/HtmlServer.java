@@ -114,8 +114,8 @@ public class HtmlServer {
 
 		 server.setHandler(servletHandler);
         
-        wcfg.server = server;
-        return server;
+		 wcfg.server = server;
+		 return server;
 	}
 	
 	static void valid(WebConfig wcfg) {
