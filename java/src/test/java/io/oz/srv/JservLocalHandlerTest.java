@@ -16,7 +16,7 @@ class JservLocalHandlerTest {
 				+ "}";
 		WebConfig wcfg = (WebConfig) Anson.fromJson(html_json);
 		JservLocalHandler h = new JservLocalHandler();
-		h.onStartup(wcfg);
+		h.onUpdate(wcfg);
 		
 		/*
 		String json = "test-dist/private/host.json";

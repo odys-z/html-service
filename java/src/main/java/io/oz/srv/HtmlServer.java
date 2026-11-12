@@ -48,6 +48,8 @@ public class HtmlServer {
 	public static void jvmStop(String[] args) {
 		if (wcfg != null && wcfg.server != null)
 			try {
+//				if (wcfg.dynpaths != null)
+//					wcfg.dynpaths.stop();
 				wcfg.server.stop();
 				wcfg.server.join();
 				// Thread.sleep(1000);
@@ -72,7 +74,15 @@ public class HtmlServer {
 			((IResUpdater) Class.forName(wcfg.startHandler[0])
 				.getDeclaredConstructor()
 				.newInstance())
-				.onStartup(wcfg);
+				.onUpdate(wcfg);
+
+        if (!isNull(wcfg.dynHandler)) {
+        	// loaded only if configured, as this requires optional jars
+			((IResUpdater) Class.forName(wcfg.dynHandler[0])
+				.getDeclaredConstructor()
+				.newInstance())
+				.onUpdate(wcfg);
+        }
 
         server.start();
         return wcfg;

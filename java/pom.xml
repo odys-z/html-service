@@ -64,16 +64,34 @@
       <scope>test</scope>
     </dependency>
 
+	<!-- 
     <dependency>
       <groupId>io.github.odys-z</groupId>
       <artifactId>antson</artifactId>
-     <version>[0.9.118,)</version>
+     <version>[1.1.1,)</version>
     </dependency>
+	-->
 
     <dependency>
       <groupId>io.github.odys-z</groupId>
       <artifactId>semantics.transact</artifactId>
      <version>[1.5.80,)</version>
+    </dependency>
+
+    <!-- Only needed when html-service.json/dynHandler is configured (ResPathsTier).
+         A static-only deployment runs without this jar and its dependencies. -->
+    <dependency>
+      <groupId>io.github.odys-z</groupId>
+      <artifactId>semantic.jserv</artifactId>
+      <version>1.6.0</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>io.github.odys-z</groupId>
+      <artifactId>doctree.jserv</artifactId>
+      <version>0.1.2</version>
+      <optional>true</optional>
     </dependency>
 
     <dependency>

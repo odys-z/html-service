@@ -40,7 +40,7 @@ public class JservLocalHandler implements IResUpdater {
 	}
 
 	@Override
-	public void onStartup(WebConfig wcfg) throws IOException {
+	public void onUpdate(WebConfig wcfg) throws IOException {
 		warnT(new Object() {}, "[Not Used] If this is not in a test, there must be some errors in html-service.json.");
 		String ip = getLocalIp();
 		String host_json = wcfg.startHandler[1];

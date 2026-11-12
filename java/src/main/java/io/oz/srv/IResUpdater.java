@@ -8,5 +8,5 @@ import java.io.IOException;
  */
 public interface IResUpdater {
 
-	void onStartup(WebConfig wcfg) throws IOException;
+	void onUpdate(WebConfig wcfg) throws IOException;
 }
