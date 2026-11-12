@@ -74,7 +74,8 @@ public class HtmlServer {
 				.newInstance())
 				.onUpdate(wcfg);
 
-        if (!isNull(wcfg.dynaResource)) {
+        if (wcfg.dynaResource != null) {
+        	mustnonull(wcfg.dynaResource.handler, "html-service.json/dynaResource.handler is required.");
         	// loaded only if configured, as this requires optional jars
 			((IResUpdater) Class.forName(wcfg.dynaResource.handler)
 				.getDeclaredConstructor()

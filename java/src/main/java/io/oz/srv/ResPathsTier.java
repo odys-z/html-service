@@ -63,7 +63,7 @@ import jakarta.servlet.http.HttpServletResponse;
  * (sooner after a failure, e.g. the synode isn't started yet): the paths are restored with
  * the synode's records.
  * 
- * <p>Requires semantic.jserv, doctree.jserv and anclient.java, see {@link WebConfig#dynHandler}, {@link WebConfig#dynaResource}.</p>
+ * <p>Requires semantic.jserv, doctree.jserv and anclient.java, see {@link WebConfig#dynaResource}.</p>
  * 
  * @since 0.2.1
  */
@@ -91,7 +91,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 	}
 
 	/** the folder of all the published docs, {@link DynaResource#resource}, served at /{@link #pubroot} */
-//	Path unzipRoot;
+	Path resroot;
 	/** where packages are unzipped before published, and removed docs are moved to; not served */
 	Path staging;
 
@@ -125,21 +125,22 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 
 	void start(WebConfig wcfg, Server server) throws IOException {
 		DynaResource res = wcfg.dynaResource;
-		mustnonull(res, "html-service.json/dynaResource is required by dynHandler ResPathsTier.");
+		mustnonull(res, "html-service.json/dynaResource is required by ResPathsTier.");
 		mustnonull(res.resource, "html-service.json/dynaResource.resource, the folder of published docs, is required.");
 		mustnonull(res.danyroot, "html-service.json/dynaResource.danyroot, the url root of published docs, is required.");
 
 		synode    = res.synode;
 		seconds   = res.pollInterval_snd;
-//		unzipRoot = Paths.get(EnvPath.decodeUri(Paths.get(".").toAbsolutePath().toString(), res.resource)).normalize();
+		resroot   = Paths.get(EnvPath.decodeUri(Paths.get(".").toAbsolutePath().toString(), res.resource)).normalize();
 		pubroot   = res.danyroot.replaceAll("^/+|/\\*$|/+$", "");
 		if (!pubroot.matches("[0-9A-Za-z_\\-\\.]+"))
 			throw new IOException("html-service.json/dynaResource.danyroot must be a folder name: " + res.danyroot);
 
 		// start empty: the docs are restored with the synode's records
-		Path unzipRoot = Paths.get(EnvPath.decodeUri(Paths.get(".").toAbsolutePath().toString(), res.resource)).normalize();
-		staging = unzipRoot.resolveSibling(unzipRoot.getFileName() + ".staging");
+		staging = resroot.resolveSibling(resroot.getFileName() + ".staging");
+		clean(resroot);
 		clean(staging);
+		Files.createDirectories(resroot);
 		Files.createDirectories(staging);
 
 		AnsonMsg.understandPorts(HtmlPort.respaths);
@@ -150,7 +151,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 
 		// 2. the published docs, a static resource path as the configured ones (HtmlServer.multiReserver())
 		ServletHolder holder = new ServletHolder("respaths-pub", DefaultServlet.class);
-		holder.setInitParameter("resourceBase", unzipRoot.toString());
+		holder.setInitParameter("resourceBase", resroot.toString());
 		holder.setInitParameter("pathInfoOnly", "true");
 		holder.setInitParameter("dirAllowed", String.valueOf(res.allowDir));
 		ctx0.addServlet(holder, "/" + pubroot + "/*");
@@ -186,7 +187,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 			}
 		});
 
-		Utils.logi("[ResPathsTier] dynamic paths: /%s/* -> %s, %s", pubroot, unzipRoot,
+		Utils.logi("[ResPathsTier] dynamic paths: /%s/* -> %s, %s", pubroot, resroot,
 				seconds > 0 && !isblank(synode) ? f("polling %s per %s seconds", synode, seconds) : "no polling");
 	}
 
@@ -354,7 +355,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 
 	/**
 	 * @param pubpath e.g. "pub/er3cou"
-	 * @return the doc's folder, e.g. respaths.unzip/er3cou
+	 * @return the doc's folder, e.g. respaths/er3cou
 	 * @throws SemanticException the path is not the url root and one path segment
 	 */
 	Path folder(String pubpath) throws SemanticException {
@@ -363,7 +364,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		String name = pubpath.substring(pubroot.length() + 1);
 		if (isblank(name) || name.matches(".*[/\\\\].*|\\.+"))
 			throw new SemanticException("The path is not a path segment in /%s.", pubroot);
-		return pubroot.resolve(name);
+		return resroot.resolve(name);
 	}
 
 	/**
