@@ -48,8 +48,6 @@ public class HtmlServer {
 	public static void jvmStop(String[] args) {
 		if (wcfg != null && wcfg.server != null)
 			try {
-//				if (wcfg.dynpaths != null)
-//					wcfg.dynpaths.stop();
 				wcfg.server.stop();
 				wcfg.server.join();
 				// Thread.sleep(1000);

@@ -25,16 +25,13 @@ public class WebConfig extends Anson {
 	String[] welcomepages;
 
 	/**
-	 * Optional. Dynamic resource paths' handler: the class name implementing {@link io.oz.srv.IDynPaths}
+	 * Optional. Dynamic resource paths' handler: the class name implementing {@link io.oz.srv.IResUpdater}
 	 * and its args, e. g. for {@link io.oz.srv.ResPathsTier}<pre>
 	 * ["io.oz.srv.ResPathsTier", "http://127.0.0.1:8964/jserv-album", "3600", "respaths.unzip"]</pre>
 	 * args: synode's jserv root, polling interval in seconds, the folder for unzipped packages.
 	 * @since 0.2.1
 	 */
 	String[] dynHandler;
-
-	// @AnsonField(ignoreTo=true, ignoreFrom=true)
-	// IDynPaths dynpaths;
 	
 	public WebConfig() {}
 
