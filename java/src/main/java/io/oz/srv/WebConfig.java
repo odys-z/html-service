@@ -7,7 +7,7 @@ import io.odysz.anson.AnsonField;
 
 public class WebConfig extends Anson {
 
-	ResPath[] paths;
+	StaticResource[] paths;
 	int port;
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
@@ -27,8 +27,9 @@ public class WebConfig extends Anson {
 	/**
 	 * Optional. Dynamic resource paths' handler: the class name implementing {@link io.oz.srv.IResUpdater}
 	 * and its args, e. g. for {@link io.oz.srv.ResPathsTier}<pre>
-	 * ["io.oz.srv.ResPathsTier", "http://127.0.0.1:8964/jserv-album", "3600", "respaths.unzip"]</pre>
-	 * args: synode's jserv root, polling interval in seconds, the folder for unzipped packages.
+	 * ["io.oz.srv.ResPathsTier", "http://127.0.0.1:8964/jserv-album", "3600", "respaths.unzip", "pub"]</pre>
+	 * args: synode's jserv root, polling interval in seconds, the folder of published (unzipped) docs,
+	 * and their url root (/pub/*).
 	 * @since 0.2.1
 	 */
 	String[] dynHandler;

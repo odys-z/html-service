@@ -58,7 +58,6 @@ class ResPathsTierTest {
 		// a configured static path, as HtmlServer.multiReserver() does
 		Path home = Files.createDirectories(tmp.resolve("home"));
 		Files.writeString(home.resolve("index.html"), "home");
-		Files.createDirectories(home.resolve("css"));
 
 		server = new Server();
 		ServerConnector connector = new ServerConnector(server);
@@ -78,9 +77,8 @@ class ResPathsTierTest {
 		String tmpdir = tmp.toString().replace("\\", "/");
 		WebConfig wcfg = (WebConfig) Anson.fromJson("{"
 				+ "\"type\": \"io.oz.srv.WebConfig\", \"port\": 8901,"
-				+ "\"paths\": [{\"path\": \"/*\", \"resource\": \"" + tmpdir + "/home\"},"
-				+ "            {\"path\": \"/album-web/*\", \"resource\": \"" + tmpdir + "/home\"}],"
-				+ "\"dynHandler\": [\"io.oz.srv.ResPathsTier\", \"\", \"3600\", \"" + tmpdir + "/unzip\"]"
+				+ "\"paths\": [{\"path\": \"/*\", \"resource\": \"" + tmpdir + "/home\"}],"
+				+ "\"dynHandler\": [\"io.oz.srv.ResPathsTier\", \"\", \"3600\", \"" + tmpdir + "/unzip\", \"pub\"]"
 				+ "}");
 		wcfg.server = server;
 
@@ -108,7 +106,7 @@ class ResPathsTierTest {
 		// first published: the path is assigned here
 		String zip1 = zip("doc-1.zip", "edition 1");
 		String path = post(A.deploy, doc("d1", null, zip1, "2026-11-12 01:00:00")).get(0).pubpath;
-		assertTrue(path.matches("[0-9a-v]{6}"), path);
+		assertTrue(path.matches("pub/[0-9a-v]{6}"), path);
 		assertEquals("edition 1", get("/" + path + "/index.html").body());
 		assertEquals("edition 1", get("/" + path + "/").body());
 		assertEquals("home", get("/index.html").body());
@@ -124,11 +122,14 @@ class ResPathsTierTest {
 		post(MsgCode.exGeneral, A.deploy, doc("d1", path, tmp.resolve("no-such.zip").toString(), "2026-11-12 03:00:00"));
 		assertEquals("edition 2", get("/" + path + "/index.html").body());
 
-		// can't hide existing resources: a configured path, a folder of the web root, or sub paths
+		// only one path segment in the root of published docs
 		String zip3 = zip("doc-3.zip", "edition 3");
 		post(MsgCode.exSemantic, A.deploy, doc("d3", "album-web", zip3, "2026-11-12 03:00:00"));
-		post(MsgCode.exSemantic, A.deploy, doc("d3", "css", zip3, "2026-11-12 03:00:00"));
-		post(MsgCode.exSemantic, A.deploy, doc("d3", "a/b", zip3, "2026-11-12 03:00:00"));
+		post(MsgCode.exSemantic, A.deploy, doc("d3", "pub/a/b", zip3, "2026-11-12 03:00:00"));
+		post(MsgCode.exSemantic, A.deploy, doc("d3", "pub/..", zip3, "2026-11-12 03:00:00"));
+
+		// the docs can't be listed
+		assertEquals(403, get("/pub/").statusCode());
 		assertEquals(path, String.join(",", tier.paths()));
 
 		// remove
@@ -142,26 +143,26 @@ class ResPathsTierTest {
 	 */
 	@Test
 	void testRefresh() throws Exception {
-		DocInf a1 = doc("da", "a001", zip("a-1.zip", "a 1"), "2026-11-12 01:00:00");
-		DocInf b1 = doc("db", "b001", zip("b-1.zip", "b 1"), "2026-11-12 01:00:00");
-		DocInf b2 = doc("db", "b001", zip("b-2.zip", "b 2"), "2026-11-12 02:00:00");
+		DocInf a1 = doc("da", "pub/a001", zip("a-1.zip", "a 1"), "2026-11-12 01:00:00");
+		DocInf b1 = doc("db", "pub/b001", zip("b-1.zip", "b 1"), "2026-11-12 01:00:00");
+		DocInf b2 = doc("db", "pub/b001", zip("b-2.zip", "b 2"), "2026-11-12 02:00:00");
 
 		synodocs = docs(a1, b1);
 		assertEquals(2, post(A.refresh).size());
-		assertEquals("a 1", get("/a001/").body());
-		assertEquals("b 1", get("/b001/").body());
+		assertEquals("a 1", get("/pub/a001/").body());
+		assertEquals("b 1", get("/pub/b001/").body());
 
 		// a001 removed, b001 rebuilt
 		synodocs = docs(b2);
 		ArrayList<DocInf> pubs = post(A.refresh);
 		assertEquals(1, pubs.size());
-		assertEquals("b001", pubs.get(0).pubpath);
-		assertEquals(404, get("/a001/").statusCode());
-		assertEquals("b 2", get("/b001/").body());
+		assertEquals("pub/b001", pubs.get(0).pubpath);
+		assertEquals(404, get("/pub/a001/").statusCode());
+		assertEquals("b 2", get("/pub/b001/").body());
 
 		synodocs = docs();
 		assertEquals(0, post(A.refresh).size());
-		assertEquals(404, get("/b001/").statusCode());
+		assertEquals(404, get("/pub/b001/").statusCode());
 	}
 
 	/** Post a request to the port, as a synode does. */

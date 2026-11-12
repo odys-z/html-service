@@ -111,7 +111,7 @@ public class HtmlServer {
 		 servletHandler.addServlet(aHolder, "/");
 
 		 if (!isNull(wcfg.paths))
-		 for (ResPath pth : wcfg.paths) {
+		 for (StaticResource pth : wcfg.paths) {
 			 aHolder = new ServletHolder("servlet" + Math.random(), DefaultServlet.class);
 			 String res = EnvPath.decodeUri(absdir, pth.resource);
 			 Utils.logi("%s: %s -> %s", pth.path, pth.resource, res);
@@ -129,7 +129,7 @@ public class HtmlServer {
 	static void valid(WebConfig wcfg) {
 		mustnonull(wcfg.paths);
 		mustgt(wcfg.port, 1024);
-		for (ResPath pth : wcfg.paths) {
+		for (StaticResource pth : wcfg.paths) {
 			mustnonull(pth);
 			mustnonull(pth.path);
 			mustnonull(pth.resource);

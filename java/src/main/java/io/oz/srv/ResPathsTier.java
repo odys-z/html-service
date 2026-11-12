@@ -1,10 +1,8 @@
 package io.oz.srv;
 
 import static io.odysz.common.LangExt.eq;
-import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.len;
-import static io.odysz.common.LangExt.prefixIfnull;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,17 +24,12 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.eclipse.jetty.ee10.servlet.DefaultServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.component.LifeCycle;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 
-import io.odysz.common.EnvPath;
 import io.odysz.common.Radix32;
 import io.odysz.common.Utils;
 import io.odysz.jclient.HttpServClient;
@@ -53,8 +46,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * Dynamic resource paths: publishes docs' html packages (zip) as context paths of this
- * (running) server, and removes them. It is the port {@link HtmlPort#respaths}, for the local synode,
+ * Dynamic resource paths: publishes docs' html packages (zip) at this (running) server, and
+ * removes them. All the docs are under one url root, dynHandler[4], e. g. /pub/er3cou, served
+ * from one folder, dynHandler[3]: publishing a doc is unzipping its package into a sub folder,
+ * removing is deleting the folder. It is the port {@link HtmlPort#respaths}, for the local synode,
  * no session, localhost only:<ol>
  * <li>{@link A#deploy}, {@link A#remove}: publish / replace, or remove the docs of the request.
  *     A doc first published gets its context path here ({@link DocInf#pubpath}), replied
@@ -73,30 +68,14 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdater {
 	private static final long serialVersionUID = 1L;
 
-	/** A published doc and its context. */
+	/** A published doc. */
 	static class DynaPublish extends DocInf {
-		private final ContextHandler ctx;
-		/** the unzipped folder */
-		Path dir;
-
-		DynaPublish(DocInf doc, Path unzipRoot, String... welcomepages) throws IOException {
+		DynaPublish(DocInf doc) {
 			docId   = doc.docId;
 			title   = doc.title;
 			pubpath = doc.pubpath;
 			htmlUri = doc.htmlUri;
 			builtAt = doc.builtAt;
-
-			ctx = new ContextHandler(prefixIfnull("/", pubpath));
-			ResourceHandler res = new ResourceHandler();
-			res.setBaseResource(ResourceFactory.of(ctx).newResource(dir));
-			res.setWelcomeFiles(welcomepages);
-			res.setDirAllowed(false);
-			ctx.setHandler(res);
-		}
-		
-		DynaPublish setDir(Path d) {
-			dir = d;
-			return this;
 		}
 
 		/** @return the doc's header, a type the synode knows */
@@ -109,9 +88,12 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		}
 	}
 
-	Server server;
-	String[] welcomepages;
+	/** the folder of all the published docs, dynHandler[3], served at /{@link #pubroot} */
 	Path unzipRoot;
+	/** where packages are unzipped before published, and removed docs are moved to; not served */
+	Path staging;
+	/** url root of all the published docs, dynHandler[4], e.g. "pub" */
+	String pubroot;
 	/** the local synode's jserv root, dynHandler[1] */
 	String synode;
 	/** polling interval */
@@ -121,11 +103,6 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 	/** time of the next polling, ms */
 	long nextpoll;
 
-	ContextHandlerCollection contexts;
-	/** configured paths' names, e.g. "album-web" for "/album-web/*" */
-	HashSet<String> reserved = new HashSet<String>();
-	/** root folders of the configured context "/" */
-	ArrayList<String> webroots = new ArrayList<String>();
 	/** [pubpath, published doc] */
 	HashMap<String, DynaPublish> published = new HashMap<String, DynaPublish>();
 
@@ -144,15 +121,20 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 	}
 
 	void start(WebConfig wcfg, Server server) throws IOException {
-		this.server = server;
-		welcomepages = isNull(wcfg.welcomepages) ? new String[] {"index.html"} : wcfg.welcomepages;
-
 		String[] args = wcfg.dynHandler;
 		synode    = len(args) > 1 ? args[1] : null;
 		seconds   = len(args) > 2 && !isblank(args[2]) ? Long.valueOf(args[2]) : 3600;
 		unzipRoot = Paths.get(len(args) > 3 && !isblank(args[3]) ? args[3] : "respaths.unzip").toAbsolutePath();
+		pubroot   = (len(args) > 4 && !isblank(args[4]) ? args[4] : "pub").replaceAll("^/+|/+$", "");
+		if (!pubroot.matches("[0-9A-Za-z_\\-\\.]+"))
+			throw new IOException("dynHandler[4], the url root of published docs, must be a folder name: " + pubroot);
+
+		// start empty: the docs are restored with the synode's records
+		staging = unzipRoot.resolveSibling(unzipRoot.getFileName() + ".staging");
 		clean(unzipRoot);
+		clean(staging);
 		Files.createDirectories(unzipRoot);
+		Files.createDirectories(staging);
 
 		AnsonMsg.understandPorts(HtmlPort.respaths);
 
@@ -160,24 +142,12 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		ServletContextHandler ctx0 = (ServletContextHandler) server.getHandler();
 		ctx0.addServlet(new ServletHolder(this), "/" + HtmlPort.respaths.url());
 
-		// existing resources, for verifying published paths
-		String absdir = Paths.get(".").toAbsolutePath().toString();
-		webroots.add(absdir);
-		reserved.add(HtmlPort.respaths.url());
-		if (wcfg.paths != null)
-			for (ResPath p : wcfg.paths) {
-				// "/*", "/" -> "";  "/album-web/*" -> "album-web"
-				String name = p.path.replaceAll("\\*$", "").replaceAll("^/+|/+$", "");
-				if (isblank(name))
-					webroots.add(EnvPath.decodeUri(absdir, p.resource));
-				else
-					reserved.add(name);
-			}
-
-		// 2. the dynamic paths
-		contexts = new ContextHandlerCollection(true);
-		contexts.addHandler(ctx0);
-		server.setHandler(contexts);
+		// 2. the published docs, a static resource path as the configured ones (HtmlServer.multiReserver())
+		ServletHolder holder = new ServletHolder("respaths-pub", DefaultServlet.class);
+		holder.setInitParameter("resourceBase", unzipRoot.toString());
+		holder.setInitParameter("pathInfoOnly", "true");
+		holder.setInitParameter("dirAllowed", "false");
+		ctx0.addServlet(holder, "/" + pubroot + "/*");
 
 		// 3. polling
 		server.addEventListener(new LifeCycle.Listener() {
@@ -209,7 +179,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 			}
 		});
 
-		Utils.logi("[ResPathsTier] dynamic paths: polling per %s seconds, unzip to %s", seconds, unzipRoot);
+		Utils.logi("[ResPathsTier] dynamic paths: /%s/* -> %s, polling per %s seconds", pubroot, unzipRoot, seconds);
 	}
 
 	@Override
@@ -320,7 +290,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 	}
 
 	/**
-	 * Publish the doc's html package ({@link DocInf#htmlUri}) at /{@link DocInf#pubpath}.
+	 * Publish the doc's html package ({@link DocInf#htmlUri}) at /{@link DocInf#pubpath}, e.g. /pub/er3cou.
 	 * A doc without pubpath gets a new one, set to {@code doc}.
 	 * 
 	 * @param force false: a published doc is replaced only if rebuilt, i. e. {@link DocInf#builtAt}
@@ -334,59 +304,63 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		if (!force && old != null && eq(old.builtAt, doc.builtAt) && eq(old.htmlUri, doc.htmlUri))
 			return;
 
-		verifyPath(doc.pubpath);
+		Path dir = folder(doc.pubpath);
 
-		// unzip first: a broken package must not take the published one down
-
-		Path zip_dir = Files.createTempDirectory(unzipRoot, doc.pubpath + "-");
+		// unzip first, where it's not served: a broken package must not take the published one down
+		Path unzipped = Files.createTempDirectory(staging, dir.getFileName() + "-");
 		try {
 			if (isblank(doc.htmlUri))
 				throw new SemanticException("No html package (htmlUri) of doc %s.", doc.docId);
-			unzip(Paths.get(doc.htmlUri), zip_dir);
+			unzip(Paths.get(doc.htmlUri), unzipped);
+
+			// then swap the folders
+			retire(dir);
+			Files.move(unzipped, dir);
 		} catch (Exception e) {
-			clean(zip_dir);
+			clean(unzipped);
 			throw e;
 		}
 
-		if (old != null)
-			undeploy(doc.pubpath);
-
-//		p.ctx = new ContextHandler("/" + p.pubpath);
-//		ResourceHandler res = new ResourceHandler();
-//		res.setBaseResource(ResourceFactory.of(p.ctx).newResource(p.dir));
-//		res.setWelcomeFiles(welcomepages);
-//		res.setDirAllowed(false);
-//		p.ctx.setHandler(res);
-		DynaPublish p = new DynaPublish(doc, unzipRoot, welcomepages).setDir(zip_dir);
-
-		Callback.Completable deployed = new Callback.Completable();
-		contexts.deployHandler(p.ctx, deployed);
-		deployed.get(30, TimeUnit.SECONDS); // ExecutionException if the deploy failed and TimeoutException if nothing came back
-		
-		// a handler deployed to a running server is not started by Jetty (12.0.18)
-		if (!p.ctx.isStarted())
-			p.ctx.start();
-
-		published.put(p.pubpath, p);
-		Utils.logi("[ResPathsTier] published /%s <- %s", p.pubpath, p.htmlUri);
+		published.put(doc.pubpath, new DynaPublish(doc));
+		Utils.logi("[ResPathsTier] published /%s <- %s", doc.pubpath, doc.htmlUri);
 	}
 
 	void undeploy(String pubpath) throws Exception {
-		DynaPublish p = published.remove(pubpath);
-		if (p == null) return;
+		if (published.remove(pubpath) == null)
+			return;
 
-		Callback.Completable undeployed = new Callback.Completable();
-		contexts.undeployHandler(p.ctx, undeployed);
-		undeployed.get(30, TimeUnit.SECONDS);
-		if (!p.ctx.isStopped())
-			p.ctx.stop();
-
-		clean(p.dir);
+		retire(folder(pubpath));
 		Utils.logi("[ResPathsTier] removed /%s", pubpath);
 	}
 
 	/**
-	 * Get the context (URL) path: short, random, radix 32 (as file names are case insensitive on Windows),
+	 * Take a published folder away: moved out of the served folder at once, then deleted.
+	 * If it can't be moved, e.g. a file is in use (Windows), nothing is changed.
+	 */
+	void retire(Path dir) throws IOException {
+		if (!Files.exists(dir)) return;
+		Path trash = Files.createTempDirectory(staging, "retired-");
+		Files.move(dir, trash.resolve(dir.getFileName()));
+		clean(trash);
+	}
+
+	/**
+	 * @param pubpath e.g. "pub/er3cou"
+	 * @return the doc's folder, e.g. respaths.unzip/er3cou
+	 * @throws SemanticException the path is not the url root and one path segment
+	 */
+	Path folder(String pubpath) throws SemanticException {
+		if (isblank(pubpath) || !pubpath.startsWith(pubroot + "/"))
+			throw new SemanticException("The path is not in the root of published docs, /%s.", pubroot);
+		String name = pubpath.substring(pubroot.length() + 1);
+		if (isblank(name) || name.matches(".*[/\\\\].*|\\.+"))
+			throw new SemanticException("The path is not a path segment in /%s.", pubroot);
+		return unzipRoot.resolve(name);
+	}
+
+	/**
+	 * Get the url path of a doc first published: the root and a short, random name, radix 32
+	 * (as file names are case insensitive on Windows), e.g. "pub/er3cou".
 	 * If a doc already published, e.g. the synode missed the reply, keeps its path.
 	 */
 	String getCtxUrlPath(DocInf doc) {
@@ -394,28 +368,11 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 			if (!isblank(doc.docId) && eq(p.docId, doc.docId))
 				return p.pubpath;
 
-		while (true) {
-			String path = Radix32.toString(ThreadLocalRandom.current().nextLong(1L << 30), 6).toLowerCase();
-			try {
-				verifyPath(path);
-				if (!published.containsKey(path))
-					return path;
-			} catch (SemanticException e) { }
-		}
-	}
-
-	/**
-	 * A published path must be a single path segment, and must not hide existing resources:
-	 * a configured path, this port, or a file / folder in the web roots.
-	 */
-	void verifyPath(String pubpath) throws SemanticException {
-		if (isblank(pubpath) || pubpath.matches(".*[/\\\\].*|\\.+"))
-			throw new SemanticException("The path is not a path segment.");
-		if (reserved.contains(pubpath))
-			throw new SemanticException("The path is a configured resource path.");
-		for (String root : webroots)
-			if (new File(root, pubpath).exists())
-				throw new SemanticException("The path is an existing resource.");
+		String path;
+		do {
+			path = pubroot + "/" + Radix32.toString(ThreadLocalRandom.current().nextLong(1L << 30), 6).toLowerCase();
+		} while (published.containsKey(path));
+		return path;
 	}
 
 	static void unzip(Path zip, Path dir) throws IOException {
