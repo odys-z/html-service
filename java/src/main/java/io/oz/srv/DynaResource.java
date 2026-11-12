@@ -12,12 +12,22 @@ public class DynaResource extends Anson {
 	String help;
 	
 	/**
+	 * Handler. For 0.2.2, always "io.oz.srv.ResPathsTier".
+	 */
+	String handler;
+	
+	/**
 	 * OPTIONAL
 	 * Published resources of synode.
 	 */
 	String synode;
 	
-	/** resource root path */
+	/**
+	 * Not null. The folder of the published docs: packages are unzipped here, each in a sub folder,
+	 * and served as static htmls at {@link #danyroot}, the same as {@link StaticResource#resource}.
+	 * It's emptied when the server starts, and it's the user's responsibility to check the folder
+	 * is not used by other static resources.
+	 */
 	String resource;
 	
 	/** 0 for no polling back to the synode */
@@ -25,9 +35,6 @@ public class DynaResource extends Anson {
 
 	/** Allow show path's directory content */
 	boolean allowDir;
-	
-	/** No null, and it's the user's resonsibility to checke the root is not used by other static resources */
-	String ziproot;
 	
 	/** No null, and it's the user's resonsibility to checke the root is not used by other static resources */
 	String danyroot;

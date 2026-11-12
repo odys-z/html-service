@@ -74,9 +74,9 @@ public class HtmlServer {
 				.newInstance())
 				.onUpdate(wcfg);
 
-        if (!isNull(wcfg.dynHandler)) {
+        if (!isNull(wcfg.dynaResource)) {
         	// loaded only if configured, as this requires optional jars
-			((IResUpdater) Class.forName(wcfg.dynHandler[0])
+			((IResUpdater) Class.forName(wcfg.dynaResource.handler)
 				.getDeclaredConstructor()
 				.newInstance())
 				.onUpdate(wcfg);

@@ -1,8 +1,9 @@
 package io.oz.srv;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.isblank;
-import static io.odysz.common.LangExt.len;
+import static io.odysz.common.LangExt.mustnonull;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.component.LifeCycle;
 
+import io.odysz.common.EnvPath;
 import io.odysz.common.Radix32;
 import io.odysz.common.Utils;
 import io.odysz.jclient.HttpServClient;
@@ -47,8 +49,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Dynamic resource paths: publishes docs' html packages (zip) at this (running) server, and
- * removes them. All the docs are under one url root, dynHandler[4], e. g. /pub/er3cou, served
- * from one folder, dynHandler[3]: publishing a doc is unzipping its package into a sub folder,
+ * removes them. All the docs are under one url root, {@link DynaResource#danyroot}, e. g. /pub/er3cou,
+ * served from one folder, {@link DynaResource#resource}: publishing a doc is unzipping its package into a sub folder,
  * removing is deleting the folder. It is the port {@link HtmlPort#respaths}, for the local synode,
  * no session, localhost only:<ol>
  * <li>{@link A#deploy}, {@link A#remove}: publish / replace, or remove the docs of the request.
@@ -57,11 +59,11 @@ import jakarta.servlet.http.HttpServletResponse;
  * <li>{@link A#refresh}: query the synode for all the published docs ({@link #req2synode()}),
  *     and make context paths the same ({@link #reconcile(ArrayList)}).</li>
  * </ol>
- * The refresh is also triggered when the server started, then every dynHandler[2] seconds
+ * The refresh is also triggered when the server started, then every {@link DynaResource#pollInterval_snd} seconds
  * (sooner after a failure, e.g. the synode isn't started yet): the paths are restored with
  * the synode's records.
  * 
- * <p>Requires semantic.jserv, doctree.jserv and anclient.java, see {@link WebConfig#dynHandler}.</p>
+ * <p>Requires semantic.jserv, doctree.jserv and anclient.java, see {@link WebConfig#dynHandler}, {@link WebConfig#dynaResource}.</p>
  * 
  * @since 0.2.1
  */
@@ -88,15 +90,16 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		}
 	}
 
-	/** the folder of all the published docs, dynHandler[3], served at /{@link #pubroot} */
-	Path unzipRoot;
+	/** the folder of all the published docs, {@link DynaResource#resource}, served at /{@link #pubroot} */
+//	Path unzipRoot;
 	/** where packages are unzipped before published, and removed docs are moved to; not served */
 	Path staging;
-	/** url root of all the published docs, dynHandler[4], e.g. "pub" */
+
+	/** url root of all the published docs, {@link DynaResource#danyroot}, e.g. "pub" */
 	String pubroot;
-	/** the local synode's jserv root, dynHandler[1] */
+	/** the local synode's jserv root, {@link DynaResource#synode} */
 	String synode;
-	/** polling interval */
+	/** polling interval, {@link DynaResource#pollInterval_snd}; 0: no polling */
 	long seconds;
 	/** polling again after a failure */
 	static final long retry = 60;
@@ -121,19 +124,22 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 	}
 
 	void start(WebConfig wcfg, Server server) throws IOException {
-		String[] args = wcfg.dynHandler;
-		synode    = len(args) > 1 ? args[1] : null;
-		seconds   = len(args) > 2 && !isblank(args[2]) ? Long.valueOf(args[2]) : 3600;
-		unzipRoot = Paths.get(len(args) > 3 && !isblank(args[3]) ? args[3] : "respaths.unzip").toAbsolutePath();
-		pubroot   = (len(args) > 4 && !isblank(args[4]) ? args[4] : "pub").replaceAll("^/+|/+$", "");
+		DynaResource res = wcfg.dynaResource;
+		mustnonull(res, "html-service.json/dynaResource is required by dynHandler ResPathsTier.");
+		mustnonull(res.resource, "html-service.json/dynaResource.resource, the folder of published docs, is required.");
+		mustnonull(res.danyroot, "html-service.json/dynaResource.danyroot, the url root of published docs, is required.");
+
+		synode    = res.synode;
+		seconds   = res.pollInterval_snd;
+//		unzipRoot = Paths.get(EnvPath.decodeUri(Paths.get(".").toAbsolutePath().toString(), res.resource)).normalize();
+		pubroot   = res.danyroot.replaceAll("^/+|/\\*$|/+$", "");
 		if (!pubroot.matches("[0-9A-Za-z_\\-\\.]+"))
-			throw new IOException("dynHandler[4], the url root of published docs, must be a folder name: " + pubroot);
+			throw new IOException("html-service.json/dynaResource.danyroot must be a folder name: " + res.danyroot);
 
 		// start empty: the docs are restored with the synode's records
+		Path unzipRoot = Paths.get(EnvPath.decodeUri(Paths.get(".").toAbsolutePath().toString(), res.resource)).normalize();
 		staging = unzipRoot.resolveSibling(unzipRoot.getFileName() + ".staging");
-		clean(unzipRoot);
 		clean(staging);
-		Files.createDirectories(unzipRoot);
 		Files.createDirectories(staging);
 
 		AnsonMsg.understandPorts(HtmlPort.respaths);
@@ -146,10 +152,11 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		ServletHolder holder = new ServletHolder("respaths-pub", DefaultServlet.class);
 		holder.setInitParameter("resourceBase", unzipRoot.toString());
 		holder.setInitParameter("pathInfoOnly", "true");
-		holder.setInitParameter("dirAllowed", "false");
+		holder.setInitParameter("dirAllowed", String.valueOf(res.allowDir));
 		ctx0.addServlet(holder, "/" + pubroot + "/*");
 
-		// 3. polling
+		// 3. polling, also restores the docs when started
+		if (seconds > 0 && !isblank(synode))
 		server.addEventListener(new LifeCycle.Listener() {
 			@Override
 			public void lifeCycleStarted(LifeCycle event) {
@@ -179,7 +186,8 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 			}
 		});
 
-		Utils.logi("[ResPathsTier] dynamic paths: /%s/* -> %s, polling per %s seconds", pubroot, unzipRoot, seconds);
+		Utils.logi("[ResPathsTier] dynamic paths: /%s/* -> %s, %s", pubroot, unzipRoot,
+				seconds > 0 && !isblank(synode) ? f("polling %s per %s seconds", synode, seconds) : "no polling");
 	}
 
 	@Override
@@ -227,7 +235,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 	 */
 	ArrayList<DocInf> req2synode() throws Exception {
 		if (isblank(synode))
-			throw new SemanticException("The synode's jserv root, dynHandler[1], is not configured.");
+			throw new SemanticException("The synode's jserv root, html-service.json/dynaResource.synode, is not configured.");
 
 		AnsonMsg<ResPublishReq> req = new AnsonMsg<ResPublishReq>(HtmlPort.respub)
 				.body(new ResPublishReq().a(A.refresh));
@@ -355,7 +363,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		String name = pubpath.substring(pubroot.length() + 1);
 		if (isblank(name) || name.matches(".*[/\\\\].*|\\.+"))
 			throw new SemanticException("The path is not a path segment in /%s.", pubroot);
-		return unzipRoot.resolve(name);
+		return pubroot.resolve(name);
 	}
 
 	/**
