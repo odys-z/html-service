@@ -97,7 +97,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 
 	/** url root of all the published docs, {@link DynaResource#danyroot}, e.g. "pub" */
 	String pubroot;
-	/** the local synode's jserv root, {@link DynaResource#synode} */
+	/** the local synode's jserv root, {@link DynaResource#syn_jserv} */
 	String synode;
 	/** polling interval, {@link DynaResource#pollInterval_snd}; 0: no polling */
 	long seconds;
@@ -129,7 +129,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		mustnonull(res.resource, "html-service.json/dynaResource.resource, the folder of published docs, is required.");
 		mustnonull(res.danyroot, "html-service.json/dynaResource.danyroot, the url root of published docs, is required.");
 
-		synode    = res.synode;
+		synode    = res.syn_jserv;
 		seconds   = res.pollInterval_snd;
 		resroot   = Paths.get(EnvPath.decodeUri(Paths.get(".").toAbsolutePath().toString(), res.resource)).normalize();
 		pubroot   = res.danyroot.replaceAll("^/+|/\\*$|/+$", "");
@@ -236,7 +236,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 	 */
 	ArrayList<DocInf> req2synode() throws Exception {
 		if (isblank(synode))
-			throw new SemanticException("The synode's jserv root, html-service.json/dynaResource.synode, is not configured.");
+			throw new SemanticException("The synode's jserv root, html-service.json/dynaResource.syn_jserv, is not configured.");
 
 		AnsonMsg<ResPublishReq> req = new AnsonMsg<ResPublishReq>(HtmlPort.respub)
 				.body(new ResPublishReq().a(A.refresh));

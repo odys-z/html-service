@@ -29,7 +29,7 @@ public class WebConfig extends Anson {
 	 * {@link DynaResource#handler}, an {@link io.oz.srv.IResUpdater} only loaded if this is configured,
 	 * e. g. for {@link io.oz.srv.ResPathsTier}<pre>
 	 * { "handler": "io.oz.srv.ResPathsTier",
-	 *   "synode": "http://127.0.0.1:8964/jserv-album", "pollInterval_snd": 3600,
+	 *   "syn_jserv": "http://127.0.0.1:8964/jserv-album", "pollInterval_snd": 3600,
 	 *   "resource": "respaths", "danyroot": "pub", "allowDir": false }</pre>
 	 * @since 0.2.2
 	 */
