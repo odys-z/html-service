@@ -78,7 +78,7 @@ class ResPathsTierTest {
 		WebConfig wcfg = (WebConfig) Anson.fromJson("{"
 				+ "\"type\": \"io.oz.srv.WebConfig\", \"port\": 8901,"
 				+ "\"paths\": [{\"path\": \"/*\", \"resource\": \"" + tmpdir + "/home\"}],"
-				+ "\"dynaResource\": {\"handler\": \"io.oz.srv.ResPathsTier\", \"synode\": \"http://127.0.0.1:8964/jserv-album\", \"pollInterval_snd\": 3600,"
+				+ "\"dynaResource\": {\"handler\": \"io.oz.srv.ResPathsTier\", \"syn_jserv\": \"http://127.0.0.1:8964/jserv-album\", \"pollInterval_snd\": 3600,"
 				+ "                   \"resource\": \"" + tmpdir + "/unzip\", \"danyroot\": \"pub\"}"
 				+ "}");
 		wcfg.server = server;

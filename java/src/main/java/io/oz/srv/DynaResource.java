@@ -18,9 +18,10 @@ public class DynaResource extends Anson {
 	
 	/**
 	 * OPTIONAL
-	 * Published resources of synode.
+	 * The local synode's jserv root, e.g. http://127.0.0.1:8964/jserv-album, for the docs it published.
+	 * Named synode before 0.2.1 was released.
 	 */
-	String synode;
+	String syn_jserv;
 	
 	/**
 	 * Not null. The folder of the published docs: packages are unzipped here, each in a sub folder,
