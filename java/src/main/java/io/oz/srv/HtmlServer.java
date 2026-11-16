@@ -1,6 +1,7 @@
 package io.oz.srv;
 
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.mustnonull;
 import static io.odysz.common.LangExt.mustgt;
 import static io.odysz.common.LangExt.str;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 import org.eclipse.jetty.ee10.servlet.DefaultServlet;
+import org.eclipse.jetty.ee10.servlet.ErrorPageErrorHandler;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
@@ -67,7 +69,14 @@ public class HtmlServer {
 
     private static WebConfig _main(String[] args) throws Exception {
         Server server = HtmlServer.multiReserver();
-        
+
+        // the page of every 404, e.g. /404.html (status 404 kept)
+        if (!isblank(wcfg.notfound)) {
+        	ErrorPageErrorHandler errs = new ErrorPageErrorHandler();
+        	errs.addErrorPage(404, wcfg.notfound);
+        	((ServletContextHandler) server.getHandler()).setErrorHandler(errs);
+        }
+
         if (!isNull(wcfg.startHandler))
 			((IResUpdater) Class.forName(wcfg.startHandler[0])
 				.getDeclaredConstructor()

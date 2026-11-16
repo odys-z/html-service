@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -136,9 +137,9 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		if (!pubroot.matches("[0-9A-Za-z_\\-\\.]+"))
 			throw new IOException("html-service.json/dynaResource.danyroot must be a folder name: " + res.danyroot);
 
-		// start empty: the docs are restored with the synode's records
+		// the docs published before are kept, and served, until the synode's records tell otherwise:
+		// a synode not reachable doesn't take them down (reconcile())
 		staging = resroot.resolveSibling(resroot.getFileName() + ".staging");
-		clean(resroot);
 		clean(staging);
 		Files.createDirectories(resroot);
 		Files.createDirectories(staging);
@@ -279,6 +280,17 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		for (String path : paths())
 			if (!pubs.contains(path))
 				undeploy(path);
+
+		// folders kept from before a restart, of docs no longer published
+		try (DirectoryStream<Path> dirs = Files.newDirectoryStream(resroot, Files::isDirectory)) {
+			for (Path d : dirs) {
+				String path = pubroot + "/" + d.getFileName();
+				if (!pubs.contains(path)) {
+					retire(d);
+					Utils.logi("[ResPathsTier] removed /%s", path);
+				}
+			}
+		}
 	}
 
 	/** @return the request's docs, with pubpaths */
@@ -380,7 +392,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		String path;
 		do {
 			path = pubroot + "/" + Radix32.toString(ThreadLocalRandom.current().nextLong(1L << 30), 6).toLowerCase();
-		} while (published.containsKey(path));
+		} while (published.containsKey(path) || Files.exists(resroot.resolve(path.substring(pubroot.length() + 1))));
 		return path;
 	}
 

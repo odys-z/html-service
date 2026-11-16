@@ -26,8 +26,9 @@ public class DynaResource extends Anson {
 	/**
 	 * Not null. The folder of the published docs: packages are unzipped here, each in a sub folder,
 	 * and served as static htmls at {@link #danyroot}, the same as {@link StaticResource#resource}.
-	 * It's emptied when the server starts, and it's the user's responsibility to check the folder
-	 * is not used by other static resources.
+	 * Kept when the server restarts: a sub folder of a doc the synode no longer publishes is removed when
+	 * the synode is queried. It's the user's responsibility to check the folder is not used by other
+	 * static resources.
 	 */
 	String resource;
 	

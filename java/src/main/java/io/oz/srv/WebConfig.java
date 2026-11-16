@@ -34,6 +34,13 @@ public class WebConfig extends Anson {
 	 * @since 0.2.2
 	 */
 	DynaResource dynaResource;
+
+	/**
+	 * Optional. The page of every 404, a path of this server, e.g. "/404.html", in the web-dist root,
+	 * built by synode.py (ISSUE sdoc-sphinx-venv). The status stays 404. Null: Jetty's page.
+	 * @since 0.2.1
+	 */
+	String notfound;
 	
 	public WebConfig() {}
 
