@@ -111,22 +111,17 @@ public class HtmlServer {
 		 servletHandler.setWelcomeFiles(isNull(wcfg.welcomepages) ? new String[]{"index.html"} : wcfg.welcomepages);
 
 		 String absdir = Paths.get(".").toAbsolutePath().toString();
-		 ServletHolder aHolder = new ServletHolder("servlet0", DefaultServlet.class);
-
 		 Utils.logi("root path: %s", absdir);
 		 Utils.logi("port     : %s", wcfg.port);
 
-		 aHolder.setInitParameter("resourceBase", absdir);
-		 aHolder.setInitParameter("pathInfoOnly", "true");
+		 ServletHolder aHolder = staticHolder("servlet0", absdir);
 		 servletHandler.addServlet(aHolder, "/");
 
 		 if (!isNull(wcfg.paths))
 		 for (StaticResource pth : wcfg.paths) {
-			 aHolder = new ServletHolder("servlet" + Math.random(), DefaultServlet.class);
 			 String res = EnvPath.decodeUri(absdir, pth.resource);
 			 Utils.logi("%s: %s -> %s", pth.path, pth.resource, res);
-			 aHolder.setInitParameter("resourceBase", res);
-			 aHolder.setInitParameter("pathInfoOnly", "true");
+			 aHolder = staticHolder("servlet" + Math.random(), res);
 			 servletHandler.addServlet(aHolder, pth.path);
 		 }
 
@@ -136,6 +131,23 @@ public class HtmlServer {
 		 return server;
 	}
 	
+	/**
+	 * A static resource's servlet, serving the gzip version whenever possible: a file with a
+	 * [file].gz beside it (e.g. portfolio.min.js.gz, made by the web pages' build) is answered
+	 * with the .gz, Content-Encoding: gzip, to the clients accepting gzip; others get the file.
+	 * 
+	 * @param name servlet name
+	 * @param resourceBase the resource's folder
+	 * @return the holder, to be added to a context
+	 */
+	static ServletHolder staticHolder(String name, String resourceBase) {
+		ServletHolder holder = new ServletHolder(name, DefaultServlet.class);
+		holder.setInitParameter("resourceBase", resourceBase);
+		holder.setInitParameter("pathInfoOnly", "true");
+		holder.setInitParameter("precompressed", "gzip=.gz");
+		return holder;
+	}
+
 	static void valid(WebConfig wcfg) {
 		mustnonull(wcfg.paths);
 		mustgt(wcfg.port, 1024);

@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.eclipse.jetty.ee10.servlet.DefaultServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
@@ -151,9 +150,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		ctx0.addServlet(new ServletHolder(this), "/" + HtmlPort.respaths.url());
 
 		// 2. the published docs, a static resource path as the configured ones (HtmlServer.multiReserver())
-		ServletHolder holder = new ServletHolder("respaths-pub", DefaultServlet.class);
-		holder.setInitParameter("resourceBase", resroot.toString());
-		holder.setInitParameter("pathInfoOnly", "true");
+		ServletHolder holder = HtmlServer.staticHolder("respaths-pub", resroot.toString());
 		holder.setInitParameter("dirAllowed", String.valueOf(res.allowDir));
 		ctx0.addServlet(holder, "/" + pubroot + "/*");
 
