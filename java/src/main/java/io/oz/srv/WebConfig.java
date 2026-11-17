@@ -31,6 +31,7 @@ public class WebConfig extends Anson {
 	 * { "handler": "io.oz.srv.ResPathsTier",
 	 *   "syn_jserv": "http://127.0.0.1:8964/jserv-album", "pollInterval_snd": 3600,
 	 *   "resource": "respaths", "danyroot": "pub", "allowDir": false }</pre>
+	 * The published docs are listed at /pub/ (or /pub/index.html), see {@link ResIndex}.
 	 * @since 0.2.2
 	 */
 	DynaResource dynaResource;

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,6 +23,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -63,6 +66,10 @@ import jakarta.servlet.http.HttpServletResponse;
  * (sooner after a failure, e.g. the synode isn't started yet): the paths are restored with
  * the synode's records.
  * 
+ * <p>The docs are listed at the url root, e. g. /pub/ or /pub/index.html, by {@link ResIndex}:
+ * the page is written for each request, of {@link #listed()}, the local folders matched with
+ * the synode's docs, or all the local folders if the synode isn't reachable.</p>
+ * 
  * <p>Requires semantic.jserv, doctree.jserv and anclient.java, see {@link WebConfig#dynaResource}.</p>
  * 
  * @since 0.2.1
@@ -75,6 +82,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		DynaPublish(DocInf doc) {
 			docId   = doc.docId;
 			title   = doc.title;
+			creator = doc.creator;
 			pubpath = doc.pubpath;
 			htmlUri = doc.htmlUri;
 			builtAt = doc.builtAt;
@@ -82,7 +90,7 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 
 		/** @return the doc's header, a type the synode knows */
 		DocInf inf() {
-			DocInf d = new DocInf(docId, title, null);
+			DocInf d = new DocInf(docId, title, creator);
 			d.pubpath = pubpath;
 			d.htmlUri = htmlUri;
 			d.builtAt = builtAt;
@@ -105,6 +113,13 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 	static final long retry = 60;
 	/** time of the next polling, ms */
 	long nextpoll;
+
+	/** the index page asks the synode again if it's asked longer ago than this, ms */
+	static final long indexFresh = 30000;
+	/** time of the index page's last asking the synode, ms */
+	long indexAsked;
+	/** the synode's last answer to the index page, [pubpath, doc]; null: it can't be reached */
+	HashMap<String, DocInf> indexDocs;
 
 	/** [pubpath, published doc] */
 	HashMap<String, DynaPublish> published = new HashMap<String, DynaPublish>();
@@ -153,6 +168,12 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		ServletHolder holder = HtmlServer.staticHolder("respaths-pub", resroot.toString());
 		holder.setInitParameter("dirAllowed", String.valueOf(res.allowDir));
 		ctx0.addServlet(holder, "/" + pubroot + "/*");
+
+		// 2.1 the index page of the published docs, written whenever the root or its index.html
+		// is requested: exact paths, matched before "/pub/*"
+		ServletHolder index = new ServletHolder("respaths-index", new ResIndex(this));
+		for (String path : new String[] {"", "/", "/index.html"})
+			ctx0.addServlet(index, "/" + pubroot + path);
 
 		// 3. polling, also restores the docs when started
 		if (seconds > 0 && !isblank(synode))
@@ -255,6 +276,84 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		for (String path : paths())
 			docs.add(published.get(path).inf());
 		return docs;
+	}
+
+	/**
+	 * The docs of the index page ({@link ResIndex}): the folders here, in {@link #resroot}, matched
+	 * with the synode's published docs ({@link #req2synode()}, asked not more often than per
+	 * {@link #indexFresh}) for the packages' titles and creators. A folder the synode doesn't publish
+	 * is not listed; it's removed by the next refresh. If the synode can't be reached, all the folders
+	 * are listed, as they are still served, each with the title of its index.html.
+	 * Nothing is changed here: paths are only deployed or removed by the synode's requests and
+	 * the polling ({@link #reconcile(ArrayList)}).
+	 * 
+	 * @return a new list of the packages' headers, each with pubpath, title and creator
+	 */
+	ArrayList<DocInf> listed() {
+		boolean ask;
+		synchronized (this) {
+			long now = System.currentTimeMillis();
+			ask = now - indexAsked >= indexFresh;
+			if (ask) indexAsked = now;
+		}
+
+		if (ask) {
+			HashMap<String, DocInf> docs = null;
+			try {
+				docs = new HashMap<String, DocInf>();
+				for (DocInf d : req2synode())
+					if (!isblank(d.pubpath))
+						docs.put(d.pubpath, d);
+			} catch (Exception e) {
+				docs = null;
+				Utils.warn("[ResPathsTier] Listing the local docs, as the synode can't be asked. %s: %s",
+						e.getClass().getName(), e.getMessage());
+			}
+			synchronized (this) { indexDocs = docs; }
+		}
+
+		synchronized (this) {
+			ArrayList<DocInf> docs = new ArrayList<DocInf>();
+			try (DirectoryStream<Path> dirs = Files.newDirectoryStream(resroot, Files::isDirectory)) {
+				for (Path d : dirs) {
+					String path = pubroot + "/" + d.getFileName();
+					DocInf doc = indexDocs != null ? indexDocs.get(path) : published.get(path);
+					if (doc == null && indexDocs != null)
+						continue;
+
+					DocInf inf = new DocInf(doc == null ? null : doc.docId,
+							doc == null ? htmltitle(d.resolve("index.html")) : doc.title,
+							doc == null ? null : doc.creator);
+					inf.pubpath = path;
+					docs.add(inf);
+				}
+			} catch (IOException e) {
+				Utils.warn("[ResPathsTier] Can't list %s: %s", resroot, e.getMessage());
+			}
+			return docs;
+		}
+	}
+
+	static final Pattern regTitle = Pattern.compile("<title[^>]*>(.*?)</title>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+	/**
+	 * @param html a html file
+	 * @return the text of its title element (in the first 64k), without Sphinx's project
+	 * suffix (" &amp;#8212; semantic-doc documentation"); null if there isn't one
+	 */
+	static String htmltitle(Path html) {
+		byte[] head = new byte[65536];
+		try (InputStream in = Files.newInputStream(html)) {
+			int len = in.readNBytes(head, 0, head.length);
+			Matcher m = regTitle.matcher(new String(head, 0, len, StandardCharsets.UTF_8));
+			if (!m.find())
+				return null;
+			String t = m.group(1).replaceAll("\\s+", " ").replaceAll(" (&#8212;|\u2014) .* documentation$", "").trim();
+			t = t.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&#39;", "'").replace("&amp;", "&");
+			return isblank(t) ? null : t;
+		} catch (IOException e) {
+			return null;
+		}
 	}
 
 	/**

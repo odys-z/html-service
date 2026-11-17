@@ -129,8 +129,10 @@ class ResPathsTierTest {
 		post(MsgCode.exSemantic, A.deploy, doc("d3", "pub/a/b", zip3, "2026-11-12 03:00:00"));
 		post(MsgCode.exSemantic, A.deploy, doc("d3", "pub/..", zip3, "2026-11-12 03:00:00"));
 
-		// the docs can't be listed
-		assertEquals(403, get("/pub/").statusCode());
+		// the docs are listed by the index page (ResIndexTest), not the folder; a doc the synode
+		// hasn't recorded yet (synodocs) is not taken down by the page
+		assertEquals(200, get("/pub/").statusCode());
+		assertEquals("edition 2", get("/" + path + "/index.html").body());
 		assertEquals(path, String.join(",", tier.paths()));
 
 		// remove
