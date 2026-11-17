@@ -1,5 +1,9 @@
 package io.oz.srv;
 
+import static io.odysz.common.LangExt.isNull;
+
+import java.util.ArrayList;
+
 import org.eclipse.jetty.server.Server;
 
 import io.odysz.anson.Anson;
@@ -21,6 +25,31 @@ public class WebConfig extends Anson {
 	 * which implements {@link io.oz.srv.IResUpdater}.
 	 */
 	String[] startHandler;
+
+	/**
+	 * Optional. The handlers run when the service starts, in this order, each a resource handler's
+	 * class name and its args, as {@link #startHandler}, e. g.<pre>
+	 * "startHandlers": [["io.oz.srv.WebAssetsHandler"],
+	 *                   ["io.oz.srv.JservLocalHandler", "private/host.json"]]</pre>
+	 * {@link #startHandler}, the only one before this, is still run, first.
+	 * @since 0.2.2
+	 */
+	String[][] startHandlers;
+
+	/**
+	 * @return the start handlers' configurations, each [class name, args...], in the order to run:
+	 * {@link #startHandler}, then {@link #startHandlers}
+	 */
+	ArrayList<String[]> startHandlers() {
+		ArrayList<String[]> handlers = new ArrayList<String[]>();
+		if (!isNull(startHandler))
+			handlers.add(startHandler);
+		if (!isNull(startHandlers))
+			for (String[] h : startHandlers)
+				if (!isNull(h))
+					handlers.add(h);
+		return handlers;
+	}
 
 	String[] welcomepages;
 

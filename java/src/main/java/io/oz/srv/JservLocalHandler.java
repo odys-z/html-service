@@ -41,9 +41,18 @@ public class JservLocalHandler implements IResUpdater {
 
 	@Override
 	public void onUpdate(WebConfig wcfg) throws IOException {
+		onUpdate(wcfg, wcfg.startHandler);
+	}
+
+	/**
+	 * @param handler [class name, host.json's path in the first static path], of
+	 * {@link WebConfig#startHandler} or {@link WebConfig#startHandlers}
+	 */
+	@Override
+	public void onUpdate(WebConfig wcfg, String[] handler) throws IOException {
 		warnT(new Object() {}, "[Not Used] If this is not in a test, there must be some errors in html-service.json.");
 		String ip = getLocalIp();
-		String host_json = wcfg.startHandler[1];
+		String host_json = handler[1];
 		host_json = FilenameUtils.concat(
 					isNull(wcfg.paths) ? "." : new File(wcfg.paths[0].resource).getAbsolutePath(),
 					host_json);

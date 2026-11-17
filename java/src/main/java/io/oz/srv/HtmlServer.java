@@ -77,11 +77,12 @@ public class HtmlServer {
         	((ServletContextHandler) server.getHandler()).setErrorHandler(errs);
         }
 
-        if (!isNull(wcfg.startHandler))
-			((IResUpdater) Class.forName(wcfg.startHandler[0])
+        // before the server starts, e.g. WebAssetsHandler: the pages' files must be there
+        for (String[] handler : wcfg.startHandlers())
+			((IResUpdater) Class.forName(handler[0])
 				.getDeclaredConstructor()
 				.newInstance())
-				.onUpdate(wcfg);
+				.onUpdate(wcfg, handler);
 
         if (wcfg.dynaResource != null) {
         	mustnonull(wcfg.dynaResource.handler, "html-service.json/dynaResource.handler is required.");
@@ -135,6 +136,8 @@ public class HtmlServer {
 	 * A static resource's servlet, serving the gzip version whenever possible: a file with a
 	 * [file].gz beside it (e.g. portfolio.min.js.gz, made by the web pages' build) is answered
 	 * with the .gz, Content-Encoding: gzip, to the clients accepting gzip; others get the file.
+	 * A .gz without its file isn't served (404): the files packed as .gz only are unzipped when the
+	 * service starts, see {@link WebAssetsHandler}.
 	 * 
 	 * @param name servlet name
 	 * @param resourceBase the resource's folder
