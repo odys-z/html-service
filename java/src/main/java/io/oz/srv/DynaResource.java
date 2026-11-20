@@ -29,20 +29,32 @@ public class DynaResource extends Anson {
 	 * Kept when the server restarts: a sub folder of a doc the synode no longer publishes is removed when
 	 * the synode is queried. It's the user's responsibility to check the folder is not used by other
 	 * static resources.
+	 * 
+	 * JSON-PICKING-0.8.2 WEB-INF/html-service.json#dynaResource.resource
 	 */
 	String resource;
 	
-	/** 0 for no polling back to the synode */
+	/**
+	 * 0 for no polling back to the synode 
+	 * 
+	 * JSON-PICKING-0.8.2 WEB-INF/html-service.json#dynaResource.pollInterval_snd
+	 */
 	int pollInterval_snd;
 
 	/**
 	 * Allow show path's directory content, of the folders in a published doc. The docs are
 	 * always listed at {@link #danyroot}, e. g. /pub/, a page written for each request
 	 * ({@link ResIndex}, since 0.2.2).
+	 * 
+	 * JSON-PICKING-0.8.2 WEB-INF/html-service.json#dynaResource.allowDir
 	 */
 	boolean allowDir;
 	
-	/** No null, and it's the user's resonsibility to checke the root is not used by other static resources */
+	/**
+	 * No null, and it's the user's resonsibility to checke the root is not used by other static resources
+	 * 
+	 * JSON-PICKING-0.8.2 WEB-INF/html-service.json#dynaResource.danyroot
+	 */
 	String danyroot;
 	
 	public DynaResource() {}

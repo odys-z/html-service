@@ -51,6 +51,9 @@ public class WebConfig extends Anson {
 		return handlers;
 	}
 
+	/**
+	 * JSON-PICKING-0.8.2 WEB-INF/html-service.json#welcomepages
+	 */
 	String[] welcomepages;
 
 	/**
