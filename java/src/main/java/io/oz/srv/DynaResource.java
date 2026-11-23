@@ -56,6 +56,14 @@ public class DynaResource extends Anson {
 	 * JSON-PICKING-0.8.2 WEB-INF/html-service.json#dynaResource.danyroot
 	 */
 	String danyroot;
-	
+
+	/**
+	 * STUB (media story), OPTIONAL, reserved: how many stories' media maps are kept in memory
+	 * ({@link StoryMedia}). 0, the default: none, a story's map is read from its json file for
+	 * each media request. A future extension, an LRU of this size.
+	 * TODO: html-service.json, and its picking item, when the cache is implemented.
+	 */
+	int storyMediaCache;
+
 	public DynaResource() {}
 }

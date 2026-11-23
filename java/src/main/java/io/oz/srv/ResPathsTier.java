@@ -175,6 +175,15 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		for (String path : new String[] {"", "/", "/index.html"})
 			ctx0.addServlet(index, "/" + pubroot + path);
 
+		// 2.2 STUB (media story, WP4): media of the published stories, /pub/<story>/m/<synuid>, by
+		// the stories' json maps in <staging>/maps (StoryMedia), report() of their size here.
+		// TODO WP4: a filter on "/pub/*" before the static holder, as a servlet mapping can't match
+		// the middle of a path; and the viewer's folder, <resroot>/_story/, reserved: never removed
+		// as an unpublished doc.
+		// storyMedia = new StoryMedia(this, staging.resolve("maps"));
+		// ctx0.addFilter(new FilterHolder(storyMedia), "/" + pubroot + "/*", EnumSet.of(DispatcherType.REQUEST));
+		// storyMedia.report();
+
 		// 3. polling, also restores the docs when started
 		if (seconds > 0 && !isblank(synode))
 		server.addEventListener(new LifeCycle.Listener() {
@@ -426,6 +435,11 @@ public class ResPathsTier extends ServPort6<ResPublishReq> implements IResUpdate
 		// unzip first, where it's not served: a broken package must not take the published one down
 		Path unzipped = Files.createTempDirectory(staging, dir.getFileName() + "-");
 		try {
+			// TODO WP4 (media story): a story (DocInf.Kind.story) has no package: write
+			// StoryShell.write(unzipped, doc, pubroot) and copy its committed page (htmlUri) as
+			// page.json, instead of unzipping; the shell loads /<pubroot>/_story/viewer.js. Its media
+			// map (the request's PubMedia, or the refresh's) is written by StoryMedia.write(); removed
+			// with undeploy(); StoryMedia.report() after each refresh.
 			if (isblank(doc.htmlUri))
 				throw new SemanticException("No html package (htmlUri) of doc %s.", doc.docId);
 			unzip(Paths.get(doc.htmlUri), unzipped);
