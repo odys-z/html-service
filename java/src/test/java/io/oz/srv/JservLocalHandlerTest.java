@@ -11,7 +11,7 @@ class JservLocalHandlerTest {
 	@Test
 	void testOnStartup() throws IOException {
 		String html_json = "{"
-				+ "\"type\": \"io.oz.srv.WebConfig\", \"port\": 8901,"
+				+ "\"type\": \"io.odysz.semantic.jserv.WebConfig\", \"port\": 8901,"
 				+ "\"paths\": [{\"path\": \"/\", \"resource\": \"test-dist\"}],"
 				+ "\"startHandler\": [\"io.oz.srv.JservLocalHandler\", \"private/host.json\", \"X29\", \"http://%s:8964/jserv-album\"]"
 				+ "}";

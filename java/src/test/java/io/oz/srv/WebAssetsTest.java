@@ -137,7 +137,7 @@ class WebAssetsTest {
 			assertEquals(404, get(root + "/portfolio.min.js", true).statusCode());
 
 			WebConfig wcfg = (WebConfig) Anson.fromJson("{"
-				+ "\"type\": \"io.oz.srv.WebConfig\", \"port\": 8901,"
+				+ "\"type\": \"io.odysz.semantic.jserv.WebConfig\", \"port\": 8901,"
 				+ "\"paths\": [{\"path\": \"/*\", \"resource\": \"" + web.toString().replace("\\", "/") + "\"}],"
 				+ "\"startHandlers\": [[\"io.oz.srv.WebAssetsHandler\"], [\"io.oz.srv.JservLocalHandler\", \"private/host.json\"]]"
 				+ "}");
