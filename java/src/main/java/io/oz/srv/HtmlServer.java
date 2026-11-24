@@ -96,7 +96,7 @@ public class HtmlServer {
         	// io.oz.sdoc.htmlsrv.ResPathsTier, which checks its port's url
 			((IResUpdater) Class.forName(wcfg.dynaResource.handler)
 				.getDeclaredConstructor(IPort.class, IPort.class, Server.class)
-				.newInstance(HtmlPort.respaths, HtmlPort.pucktree, server))
+				.newInstance(HtmlPort.respaths, HtmlPort.doctree, server))
 				.onUpdate(wcfg);
         }
 

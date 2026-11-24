@@ -1,4 +1,4 @@
-{ "type": "io.oz.srv.WebConfig",
+{ "type": "io.odysz.semantic.jserv.WebConfig",
   "port": 1984,
   "paths": [
   	{"path": "/*", "resource": "../../../../../../pm/home"},

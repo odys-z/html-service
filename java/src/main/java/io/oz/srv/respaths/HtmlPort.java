@@ -23,10 +23,11 @@ public enum HtmlPort implements IPort {
 	 * the url is checked by it, ResPathsTier.url */
 	respaths("respaths.serv"),
 	/**
-	 * The local synode's port (doctree.jserv's io.oz.sdoc.tier.PucktreeTier, in the synode's own ports as "pucktree"),
-	 * queried by io.oz.sdoc.htmlsrv.ResPathsTier for the pages published.
+	 * The local synode's doc-tree port (doctree.jserv's io.oz.sdoc.tier.DoctreeTier, in the synode's own ports
+	 * as "doctree"), queried by io.oz.sdoc.htmlsrv.ResPathsTier for the pages published, r/published,
+	 * without a session. Its url is checked by ResPathsTier, DoctreeTier.url.
 	 */
-	pucktree("pucktree.serv");
+	doctree("doctree.serv");
 
 	static {
 		JSONAnsonListener.registFactory(HtmlPort.class, 
