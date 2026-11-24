@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.odys-z</groupId>
   <artifactId>html-web</artifactId>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <name>Jetty Embedded for Static HTML</name>
   <description>Simple html sever similar to Python3 http.server module, but suitable for install as a Windows service, via Apache Daemon, procrun.</description>
 
@@ -83,14 +83,14 @@
     <dependency>
       <groupId>io.github.odys-z</groupId>
       <artifactId>semantic.jserv</artifactId>
-      <version>1.6.0</version>
+      <version>1.6.1</version>
       <optional>true</optional>
     </dependency>
 
     <dependency>
       <groupId>io.github.odys-z</groupId>
       <artifactId>doctree.jserv</artifactId>
-      <version>0.1.2</version>
+      <version>0.1.5</version>
       <optional>true</optional>
     </dependency>
 

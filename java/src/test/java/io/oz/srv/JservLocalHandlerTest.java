@@ -4,6 +4,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.Anson;
+import io.odysz.semantic.jserv.WebConfig;
 
 class JservLocalHandlerTest {
 

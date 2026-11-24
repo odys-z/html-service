@@ -20,6 +20,9 @@ import io.odysz.anson.Anson;
 import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.Utils;
+import io.odysz.semantic.jserv.IResUpdater;
+import io.odysz.semantic.jserv.StaticResource;
+import io.odysz.semantic.jserv.WebConfig;
 
 /**
  * Using a {@link ServletContextHandler} serve static file content from single location
@@ -29,6 +32,7 @@ public class HtmlServer {
 	static final String config_json = "html-service.json";
 	
 	static WebConfig wcfg;
+	static Server wcfg_server;
 
 	public static void jvmStart(String[] args) {
 		try {
@@ -48,10 +52,10 @@ public class HtmlServer {
 	 * @throws Exception
 	 */
 	public static void jvmStop(String[] args) {
-		if (wcfg != null && wcfg.server != null)
+		if (wcfg != null && wcfg_server != null)
 			try {
-				wcfg.server.stop();
-				wcfg.server.join();
+				wcfg_server.stop();
+				wcfg_server.join();
 				// Thread.sleep(1000);
 				Utils.logi("Service stopped. %s", wcfg.error == null ? "" : str(wcfg.error));
 			} catch (Exception e) {
@@ -64,7 +68,7 @@ public class HtmlServer {
 
     public static void main(String[] args) throws Exception {
     	wcfg = _main(args);
-        wcfg.server.join();
+        wcfg_server.join();
     }
 
     private static WebConfig _main(String[] args) throws Exception {
@@ -128,7 +132,7 @@ public class HtmlServer {
 
 		 server.setHandler(servletHandler);
         
-		 wcfg.server = server;
+		 wcfg_server = server;
 		 return server;
 	}
 	

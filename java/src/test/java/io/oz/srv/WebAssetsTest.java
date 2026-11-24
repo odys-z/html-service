@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.odysz.anson.Anson;
+import io.odysz.semantic.jserv.IResUpdater;
+import io.odysz.semantic.jserv.WebConfig;
 
 /**
  * The web pages' files packed as .gz only are unzipped by the list of the pages' build,

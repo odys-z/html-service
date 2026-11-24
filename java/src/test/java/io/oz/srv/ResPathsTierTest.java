@@ -31,11 +31,12 @@ import org.junit.jupiter.api.io.TempDir;
 import io.odysz.anson.Anson;
 import io.odysz.semantic.jprotocol.AnsonMsg;
 import io.odysz.semantic.jprotocol.AnsonMsg.MsgCode;
+import io.odysz.semantic.jserv.WebConfig;
 import io.odysz.semantic.jprotocol.AnsonResp;
-import io.oz.sdoc.DocInf;
-import io.oz.sdoc.publish.ResPublishReq;
-import io.oz.sdoc.publish.ResPublishReq.A;
-import io.oz.sdoc.publish.ResPublishResp;
+import io.oz.sdoc.docx.DocxInf;
+import io.oz.sdoc.publish.PuckPubReq;
+import io.oz.sdoc.publish.PuckPubReq.A;
+import io.oz.sdoc.publish.PuckPubResp;
 import io.oz.srv.respaths.HtmlPort;
 
 /**
@@ -51,7 +52,7 @@ class ResPathsTierTest {
 	static ResPathsTier tier;
 
 	/** The docs published, as the synode keeps them. */
-	static ArrayList<DocInf> synodocs = new ArrayList<DocInf>();
+	static ArrayList<DocxInf> synodocs = new ArrayList<DocxInf>();
 
 	@BeforeAll
 	static void startServer() throws Exception {
@@ -86,7 +87,7 @@ class ResPathsTierTest {
 		tier = new ResPathsTier() {
 			private static final long serialVersionUID = 1L;
 			@Override
-			ArrayList<DocInf> req2synode() { return synodocs; }
+			PuckPubResp req2synode() { return new PuckPubResp().respubs(synodocs); }
 		};
 		tier.onUpdate(wcfg);
 		server.start();
@@ -146,9 +147,9 @@ class ResPathsTierTest {
 	 */
 	@Test
 	void testRefresh() throws Exception {
-		DocInf a1 = doc("da", "pub/a001", zip("a-1.zip", "a 1"), "2026-11-12 01:00:00");
-		DocInf b1 = doc("db", "pub/b001", zip("b-1.zip", "b 1"), "2026-11-12 01:00:00");
-		DocInf b2 = doc("db", "pub/b001", zip("b-2.zip", "b 2"), "2026-11-12 02:00:00");
+		DocxInf a1 = doc("da", "pub/a001", zip("a-1.zip", "a 1"), "2026-11-12 01:00:00");
+		DocxInf b1 = doc("db", "pub/b001", zip("b-1.zip", "b 1"), "2026-11-12 01:00:00");
+		DocxInf b2 = doc("db", "pub/b001", zip("b-2.zip", "b 2"), "2026-11-12 02:00:00");
 
 		synodocs = docs(a1, b1);
 		assertEquals(2, post(A.refresh).size());
@@ -157,7 +158,7 @@ class ResPathsTierTest {
 
 		// a001 removed, b001 rebuilt
 		synodocs = docs(b2);
-		ArrayList<DocInf> pubs = post(A.refresh);
+		ArrayList<DocxInf> pubs = post(A.refresh);
 		assertEquals(1, pubs.size());
 		assertEquals("pub/b001", pubs.get(0).pubpath);
 		assertEquals(404, get("/pub/a001/").statusCode());
@@ -169,13 +170,13 @@ class ResPathsTierTest {
 	}
 
 	/** Post a request to the port, as a synode does. */
-	static ArrayList<DocInf> post(String a, DocInf... docs) throws Exception {
+	static ArrayList<DocxInf> post(String a, DocxInf... docs) throws Exception {
 		return post(MsgCode.ok, a, docs);
 	}
 
-	static ArrayList<DocInf> post(MsgCode expect, String a, DocInf... docs) throws Exception {
-		AnsonMsg<ResPublishReq> req = new AnsonMsg<ResPublishReq>(HtmlPort.respaths)
-				.body(new ResPublishReq().respubs(docs).a(a));
+	static ArrayList<DocxInf> post(MsgCode expect, String a, DocxInf... docs) throws Exception {
+		AnsonMsg<PuckPubReq> req = new AnsonMsg<PuckPubReq>(HtmlPort.respaths)
+				.body(new PuckPubReq().respubs(docs).a(a));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		req.toBlock(bos);
 
@@ -187,7 +188,7 @@ class ResPathsTierTest {
 		@SuppressWarnings("unchecked")
 		AnsonMsg<AnsonResp> resp = (AnsonMsg<AnsonResp>) Anson.fromJson(new ByteArrayInputStream(json.getBytes()));
 		assertEquals(expect, resp.code(), json);
-		return expect == MsgCode.ok ? ((ResPublishResp) resp.body(0)).respubs : null;
+		return expect == MsgCode.ok ? ((PuckPubResp) resp.body(0)).respubs : null;
 	}
 
 	static HttpResponse<String> get(String path) throws Exception {
@@ -196,16 +197,16 @@ class ResPathsTierTest {
 				BodyHandlers.ofString());
 	}
 
-	static DocInf doc(String docId, String pubpath, String htmlUri, String builtAt) {
-		DocInf d = new DocInf(docId, "Doc " + docId, "tester");
+	static DocxInf doc(String docId, String pubpath, String htmlUri, String builtAt) {
+		DocxInf d = new DocxInf(docId, "Doc " + docId, "tester");
 		d.pubpath = pubpath;
 		d.htmlUri = htmlUri;
 		d.builtAt = builtAt;
 		return d;
 	}
 
-	static ArrayList<DocInf> docs(DocInf... docs) {
-		return new ResPublishReq().respubs(docs).respubs;
+	static ArrayList<DocxInf> docs(DocxInf... docs) {
+		return new PuckPubReq().respubs(docs).respubs;
 	}
 
 	static String zip(String name, String indexHtml) throws Exception {

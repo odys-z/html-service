@@ -11,6 +11,8 @@ import io.odysz.anson.Anson;
 import io.odysz.anson.JsonOpt;
 import io.odysz.common.DateFormat;
 import io.odysz.common.FilenameUtils;
+import io.odysz.semantic.jserv.IResUpdater;
+import io.odysz.semantic.jserv.WebConfig;
 import io.oz.syntier.serv.ExternalHosts;
 
 import static io.odysz.common.LangExt.isNull;

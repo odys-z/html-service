@@ -28,8 +28,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.odysz.anson.Anson;
-import io.oz.sdoc.DocInf;
-import io.oz.sdoc.publish.ResPublishReq;
+import io.odysz.semantic.jserv.WebConfig;
+import io.oz.sdoc.docx.DocxInf;
+import io.oz.sdoc.publish.PuckPubReq;
+import io.oz.sdoc.publish.PuckPubResp;
 
 /**
  * The index page of the published docs. The synode's published docs, answered to the tier's
@@ -44,7 +46,7 @@ class ResIndexTest {
 	static ResPathsTier tier;
 
 	/** The docs published, as the synode keeps them. */
-	static ArrayList<DocInf> synodocs = new ArrayList<DocInf>();
+	static ArrayList<DocxInf> synodocs = new ArrayList<DocxInf>();
 
 	@BeforeAll
 	static void startServer() throws Exception {
@@ -74,15 +76,15 @@ class ResIndexTest {
 				+ "\"dynaResource\": {\"handler\": \"io.oz.srv.ResPathsTier\", \"syn_jserv\": \"http://127.0.0.1:8964/jserv-album\", \"pollInterval_snd\": 0,"
 				+ "                   \"resource\": \"" + tmpdir + "/unzip\", \"danyroot\": \"pub\"}"
 				+ "}");
-		wcfg.server = server;
+		HtmlServer.wcfg_server = server;
 
 		tier = new ResPathsTier() {
 			private static final long serialVersionUID = 1L;
 			@Override
-			ArrayList<DocInf> req2synode() throws IOException {
+			PuckPubResp req2synode() throws IOException {
 				if (synodocs == null)
 					throw new IOException("Connection refused");
-				return synodocs;
+				return new PuckPubResp().respubs(synodocs);
 			}
 		};
 		tier.onUpdate(wcfg);
@@ -104,10 +106,10 @@ class ResIndexTest {
 		assertEquals("home", get("/index.html").body());
 
 		// published packages, with the synode's titles and creators; sorted by titles, texts escaped
-		DocInf db = doc("db", "Doc <b> & \"c\"", "pub/b001", zip("b-1.zip", "b 1"), "2026-11-16 02:00:00");
-		DocInf da = doc("da", "A doc 文档", "pub/a001", zip("a-1.zip", "a 1"), "2026-11-16 01:00:00");
+		DocxInf db = doc("db", "Doc <b> & \"c\"", "pub/b001", zip("b-1.zip", "b 1"), "2026-11-16 02:00:00");
+		DocxInf da = doc("da", "A doc 文档", "pub/a001", zip("a-1.zip", "a 1"), "2026-11-16 01:00:00");
 		synodocs = docs(db, da);
-		tier.reconcile(synodocs);
+		tier.reconcile(new PuckPubResp().respubs(synodocs));
 		String page = index();
 		String a = "<li><a href=\"/pub/a001/\">A doc 文档</a><span class=\"creator\">ody</span></li>";
 		String b = "<li><a href=\"/pub/b001/\">Doc &lt;b&gt; &amp; &quot;c&quot;</a><span class=\"creator\">ody</span></li>";
@@ -139,11 +141,11 @@ class ResIndexTest {
 		assertFalse(page.contains("a001"), page);
 		assertTrue(page.contains(b), page);
 		assertEquals("a 1", get("/pub/a001/").body());
-		tier.reconcile(synodocs);
+		tier.reconcile(new PuckPubResp().respubs(synodocs));
 		assertEquals(404, get("/pub/a001/").statusCode());
 
 		synodocs = docs();
-		tier.reconcile(synodocs);
+		tier.reconcile(new PuckPubResp().respubs(synodocs));
 		assertTrue(index().contains("No docs published."));
 	}
 
@@ -159,7 +161,7 @@ class ResIndexTest {
 		Path untitled = Files.createDirectories(tier.resroot.resolve("k002"));
 		Files.writeString(untitled.resolve("readme.txt"), "no index");
 
-		ArrayList<DocInf> docs = synodocs;
+		ArrayList<DocxInf> docs = synodocs;
 		try {
 			synodocs = null;
 			String page = index();
@@ -175,7 +177,7 @@ class ResIndexTest {
 		String page = index();
 		assertFalse(page.contains("k001"), page);
 		assertFalse(page.contains("k002"), page);
-		tier.reconcile(synodocs);
+		tier.reconcile(new PuckPubResp().respubs(synodocs));
 		assertEquals(404, get("/pub/k001/").statusCode());
 	}
 
@@ -193,16 +195,16 @@ class ResIndexTest {
 				BodyHandlers.ofString());
 	}
 
-	static DocInf doc(String docId, String title, String pubpath, String htmlUri, String builtAt) {
-		DocInf d = new DocInf(docId, title, "ody");
+	static DocxInf doc(String docId, String title, String pubpath, String htmlUri, String builtAt) {
+		DocxInf d = new DocxInf(docId, title, "ody");
 		d.pubpath = pubpath;
 		d.htmlUri = htmlUri;
 		d.builtAt = builtAt;
 		return d;
 	}
 
-	static ArrayList<DocInf> docs(DocInf... docs) {
-		return new ResPublishReq().respubs(docs).respubs;
+	static ArrayList<DocxInf> docs(DocxInf... docs) {
+		return new PuckPubReq().respubs(docs).respubs;
 	}
 
 	static String zip(String name, String indexHtml) throws Exception {

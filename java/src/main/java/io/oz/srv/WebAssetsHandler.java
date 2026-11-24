@@ -16,6 +16,9 @@ import java.util.zip.GZIPInputStream;
 import io.odysz.anson.Anson;
 import io.odysz.common.EnvPath;
 import io.odysz.common.Utils;
+import io.odysz.semantic.jserv.IResUpdater;
+import io.odysz.semantic.jserv.StaticResource;
+import io.odysz.semantic.jserv.WebConfig;
 
 /**
  * A start handler: the web pages' files packed as .gz only are unzipped, by the list of the pages'
