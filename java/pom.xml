@@ -70,13 +70,13 @@
       <artifactId>antson</artifactId>
      <version>[1.1.1,)</version>
     </dependency>
-	-->
 
     <dependency>
       <groupId>io.github.odys-z</groupId>
       <artifactId>semantics.transact</artifactId>
-     <version>[1.5.80,)</version>
+     <version>[1.5.82,)</version>
     </dependency>
+	-->
 
     <!-- Only needed when html-service.json/dynHandler is configured (ResPathsTier).
          A static-only deployment runs without this jar and its dependencies. -->
@@ -90,7 +90,7 @@
     <dependency>
       <groupId>io.github.odys-z</groupId>
       <artifactId>doctree.jserv</artifactId>
-      <version>0.1.5</version>
+      <version>[0.1.6,)</version>
       <optional>true</optional>
     </dependency>
 
