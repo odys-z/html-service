@@ -32,11 +32,11 @@ import io.odysz.semantic.jprotocol.AnsonMsg;
 import io.odysz.semantic.jprotocol.AnsonMsg.MsgCode;
 import io.odysz.semantic.jserv.WebConfig;
 import io.odysz.semantic.jprotocol.AnsonResp;
-import io.oz.sdoc.docx.DocxInf;
-import io.oz.sdoc.publish.PubMedia;
-import io.oz.sdoc.publish.PuckPubReq;
-import io.oz.sdoc.publish.PuckPubReq.A;
-import io.oz.sdoc.publish.PuckPubResp;
+import io.oz.sdoc.SDocRef;
+import io.oz.sdoc.htmlsrv.PubMedia;
+import io.oz.sdoc.htmlsrv.HtmlPubReq;
+import io.oz.sdoc.htmlsrv.HtmlPubResp;
+import io.oz.sdoc.htmlsrv.HtmlPubReq.A;
 import io.oz.srv.respaths.HtmlPort;
 
 /**
@@ -53,7 +53,7 @@ class StoryMediaTest {
 	static Path vol;
 
 	/** the synode's answer to a refresh */
-	static PuckPubResp synodeAnswer = new PuckPubResp().respubs(new ArrayList<DocxInf>());
+	static HtmlPubResp synodeAnswer = new HtmlPubResp().respubs(new ArrayList<SDocRef>());
 
 	@BeforeAll
 	static void startServer() throws Exception {
@@ -84,7 +84,7 @@ class StoryMediaTest {
 		tier = new ResPathsTier() {
 			private static final long serialVersionUID = 1L;
 			@Override
-			PuckPubResp req2synode() { return synodeAnswer; }
+			HtmlPubResp req2synode() { return synodeAnswer; }
 		};
 		tier.onUpdate(wcfg);
 		server.start();
@@ -105,7 +105,7 @@ class StoryMediaTest {
 		Path page = Files.writeString(vol.resolve("X29.S.000A.page.json"),
 				"{\"type\": \"io.oz.sdoc.story.PuckNode\", \"pucktype\": \"page\", \"id\": \"root\"}");
 
-		DocxInf s = story("X29.S.000A", null, page, "2026-11-23 19:20:00");
+		SDocRef s = story("X29.S.000A", null, page, "2026-11-23 19:20:00");
 		PubMedia m = new PubMedia(s.docId, null, new HashMap<String, String>() {{
 			put("X29,00A3F1", jpg.toString());
 			put("X29,00A3F7", mp4.toString());
@@ -146,7 +146,7 @@ class StoryMediaTest {
 		PubMedia m2 = new PubMedia(s.docId, path, new HashMap<String, String>(m.paths) {{
 			put("X29,00A3F2", jpg2.toString());
 		}});
-		synodeAnswer = new PuckPubResp().respubs(docs(s)).media(medias(m2));
+		synodeAnswer = new HtmlPubResp().respubs(docs(s)).media(medias(m2));
 		post(A.refresh, null);
 		assertEquals("second", get("/" + path + "/m/X29,00A3F2").body());
 
@@ -156,16 +156,16 @@ class StoryMediaTest {
 		assertEquals("viewer", get("/pub/_story/viewer.js").body());
 
 		// removed: the map too
-		synodeAnswer = new PuckPubResp().respubs(docs()).media(medias());
+		synodeAnswer = new HtmlPubResp().respubs(docs()).media(medias());
 		post(A.refresh, null);
 		assertEquals(404, get("/" + path + "/").statusCode());
 		assertEquals(404, get("/" + path + "/m/X29,00A3F1").statusCode());
 		assertEquals("viewer", get("/pub/_story/viewer.js").body());
 	}
 
-	static DocxInf story(String docId, String pubpath, Path page, String builtAt) {
-		DocxInf d = new DocxInf(docId, "Spring Trip", "ody");
-		d.kind = DocxInf.Kind.story;
+	static SDocRef story(String docId, String pubpath, Path page, String builtAt) {
+		SDocRef d = new SDocRef(docId, "Spring Trip", "ody");
+		d.kind = SDocRef.Kind.story;
 		d.pubpath = pubpath;
 		d.htmlUri = page.toString();
 		d.builtAt = builtAt;
@@ -173,9 +173,9 @@ class StoryMediaTest {
 		return d;
 	}
 
-	static ArrayList<DocxInf> docs(DocxInf... ds) {
-		ArrayList<DocxInf> l = new ArrayList<DocxInf>();
-		for (DocxInf d : ds) l.add(d);
+	static ArrayList<SDocRef> docs(SDocRef... ds) {
+		ArrayList<SDocRef> l = new ArrayList<SDocRef>();
+		for (SDocRef d : ds) l.add(d);
 		return l;
 	}
 
@@ -186,9 +186,9 @@ class StoryMediaTest {
 	}
 
 	/** Post a request to the port, as the synode does. */
-	static ArrayList<DocxInf> post(String a, PubMedia m, DocxInf... docs) throws Exception {
-		AnsonMsg<PuckPubReq> req = new AnsonMsg<PuckPubReq>(HtmlPort.respaths)
-				.body(new PuckPubReq().respubs(docs).media(m).a(a));
+	static ArrayList<SDocRef> post(String a, PubMedia m, SDocRef... docs) throws Exception {
+		AnsonMsg<HtmlPubReq> req = new AnsonMsg<HtmlPubReq>(HtmlPort.respaths)
+				.body(new HtmlPubReq().respubs(docs).media(m).a(a));
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		req.toBlock(bos);
 
@@ -200,7 +200,7 @@ class StoryMediaTest {
 		@SuppressWarnings("unchecked")
 		AnsonMsg<AnsonResp> resp = (AnsonMsg<AnsonResp>) Anson.fromJson(new ByteArrayInputStream(json.getBytes()));
 		assertEquals(MsgCode.ok, resp.code(), json);
-		return ((PuckPubResp) resp.body(0)).respubs;
+		return ((HtmlPubResp) resp.body(0)).respubs;
 	}
 
 	static HttpResponse<String> get(String path) throws Exception {

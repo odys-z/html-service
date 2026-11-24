@@ -20,9 +20,11 @@ import io.odysz.anson.Anson;
 import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.Utils;
+import io.odysz.semantic.jprotocol.IPort;
 import io.odysz.semantic.jserv.IResUpdater;
 import io.odysz.semantic.jserv.StaticResource;
 import io.odysz.semantic.jserv.WebConfig;
+import io.oz.srv.respaths.HtmlPort;
 
 /**
  * Using a {@link ServletContextHandler} serve static file content from single location
@@ -90,10 +92,11 @@ public class HtmlServer {
 
         if (wcfg.dynaResource != null) {
         	mustnonull(wcfg.dynaResource.handler, "html-service.json/dynaResource.handler is required.");
-        	// loaded only if configured, as this requires optional jars
+        	// loaded only if configured, as this requires optional jars, e.g. doctree.jserv's
+        	// io.oz.sdoc.tier.ResPathsTier, which checks its port's url
 			((IResUpdater) Class.forName(wcfg.dynaResource.handler)
-				.getDeclaredConstructor()
-				.newInstance())
+				.getDeclaredConstructor(IPort.class, IPort.class, Server.class)
+				.newInstance(HtmlPort.respaths, HtmlPort.respub, server))
 				.onUpdate(wcfg);
         }
 

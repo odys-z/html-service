@@ -19,11 +19,12 @@ import io.odysz.semantics.x.SemanticException;
  */
 public enum HtmlPort implements IPort {
 	echo("echo.less"),
-	/** port provided by {@link io.oz.srv.ResPathsTier}, localhost only, no session */
+	/** port provided by doctree.jserv's io.oz.sdoc.tier.ResPathsTier, localhost only, no session;
+	 * the url is checked by it, ResPathsTier.url */
 	respaths("respaths.serv"),
 	/**
 	 * The local synode's port (doctree.jserv's ResPublishTier, in the synode's own ports as "respub"),
-	 * queried by {@link io.oz.srv.ResPathsTier} for the docs published.
+	 * queried by io.oz.sdoc.tier.ResPathsTier for the docs published.
 	 */
 	respub("respub.less");
 
