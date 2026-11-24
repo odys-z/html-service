@@ -93,10 +93,10 @@ public class HtmlServer {
         if (wcfg.dynaResource != null) {
         	mustnonull(wcfg.dynaResource.handler, "html-service.json/dynaResource.handler is required.");
         	// loaded only if configured, as this requires optional jars, e.g. doctree.jserv's
-        	// io.oz.sdoc.tier.ResPathsTier, which checks its port's url
+        	// io.oz.sdoc.htmlsrv.ResPathsTier, which checks its port's url
 			((IResUpdater) Class.forName(wcfg.dynaResource.handler)
 				.getDeclaredConstructor(IPort.class, IPort.class, Server.class)
-				.newInstance(HtmlPort.respaths, HtmlPort.respub, server))
+				.newInstance(HtmlPort.respaths, HtmlPort.pucktree, server))
 				.onUpdate(wcfg);
         }
 
