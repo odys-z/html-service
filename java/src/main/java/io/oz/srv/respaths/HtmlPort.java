@@ -19,14 +19,14 @@ import io.odysz.semantics.x.SemanticException;
  */
 public enum HtmlPort implements IPort {
 	echo("echo.less"),
-	/** port provided by doctree.jserv's io.oz.sdoc.tier.ResPathsTier, localhost only, no session;
+	/** port provided by doctree.jserv's io.oz.sdoc.htmlsrv.ResPathsTier, localhost only, no session;
 	 * the url is checked by it, ResPathsTier.url */
 	respaths("respaths.serv"),
 	/**
-	 * The local synode's port (doctree.jserv's ResPublishTier, in the synode's own ports as "respub"),
-	 * queried by io.oz.sdoc.tier.ResPathsTier for the docs published.
+	 * The local synode's port (doctree.jserv's io.oz.sdoc.tier.PucktreeTier, in the synode's own ports as "pucktree"),
+	 * queried by io.oz.sdoc.htmlsrv.ResPathsTier for the pages published.
 	 */
-	respub("respub.less");
+	pucktree("pucktree.serv");
 
 	static {
 		JSONAnsonListener.registFactory(HtmlPort.class, 
