@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.zip.CRC32;
 import java.util.zip.GZIPInputStream;
@@ -39,7 +40,9 @@ public class WebAssetsHandler implements IResUpdater {
 		String absdir = Paths.get(".").toAbsolutePath().toString();
 		for (StaticResource pth : wcfg.paths)
 			try {
-				WebAssetsHandler.restoreAsset(EnvPath.decodeUri(absdir, pth.resource));
+				String res = EnvPath.decodeUri(absdir, pth.resource);
+				Utils.logi("[WebAssetsHandler] %s -> %s", pth.path, res);
+				WebAssetsHandler.restoreAsset(res);
 			} catch (IOException e) {
 				Utils.warn("[WebAssetsHandler] Files of %s are not unzipped, pages can be missing. %s",
 						pth.resource, e.getMessage());
@@ -111,7 +114,8 @@ public class WebAssetsHandler implements IResUpdater {
 				for (String n : build)
 					names.add(n);
 	
-		int unzipped = 0;
+		ArrayList<String> unzipped = new ArrayList<String>();
+		int same = 0;
 		for (String n : names) {
 			if (n.endsWith(".gz") || !names.contains(n + ".gz"))
 				continue;
@@ -119,19 +123,26 @@ public class WebAssetsHandler implements IResUpdater {
 			Path file = root.resolve(n).normalize();
 			Path gz = root.resolve(n + ".gz").normalize();
 			// the list is only for the files in the web root
-			if (!file.startsWith(root) || !Files.isRegularFile(gz) || WebAssetsHandler.sameRes(file, gz))
+			if (!file.startsWith(root) || !Files.isRegularFile(gz))
 				continue;
+			if (WebAssetsHandler.sameRes(file, gz)) {
+				same++;
+				continue;
+			}
 	
 			Path tmp = file.resolveSibling(file.getFileName() + ".unzip");
 			try (InputStream in = new GZIPInputStream(Files.newInputStream(gz))) {
 				Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING);
 			}
 			Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING);
-			unzipped++;
+			unzipped.add(n);
 		}
 	
-		if (unzipped > 0)
-			Utils.logi("[WebAssets] %s file(s) unzipped in %s, by %s.", unzipped, root, WebAssets.json);
-		return unzipped;
+		unzipped.sort(null);
+		Utils.logi("[WebAssets] %s file(s) unzipped in %s, by %s, %s the same as their .gz already%s",
+				unzipped.size(), root, WebAssets.json, same, unzipped.isEmpty() ? "." : ":");
+		for (String n : unzipped)
+			Utils.logi("\t%s <- %s.gz", n, n);
+		return unzipped.size();
 	}
 }

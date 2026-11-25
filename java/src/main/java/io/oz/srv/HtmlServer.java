@@ -1,5 +1,6 @@
 package io.oz.srv;
 
+import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.mustnonull;
@@ -16,6 +17,9 @@ import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+
+import com.google.zxing.WriterException;
+
 import io.odysz.anson.Anson;
 import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
@@ -24,6 +28,8 @@ import io.odysz.semantic.jprotocol.IPort;
 import io.odysz.semantic.jserv.IResUpdater;
 import io.odysz.semantic.jserv.StaticResource;
 import io.odysz.semantic.jserv.WebConfig;
+import io.odysz.semantic.jserv.helper.QrProps;
+import io.odysz.semantic.jserv.helper.QrTerminal;
 import io.oz.srv.respaths.HtmlPort;
 
 /**
@@ -35,6 +41,8 @@ public class HtmlServer {
 	
 	static WebConfig wcfg;
 	static Server wcfg_server;
+	/** the web-dist root, the folder served at /* (or /), the working folder if not configured */
+	static String webroot;
 
 	public static void jvmStart(String[] args) {
 		try {
@@ -90,17 +98,33 @@ public class HtmlServer {
 				.newInstance())
 				.onUpdate(wcfg, handler);
 
+        IResUpdater dynaRes = null;
         if (wcfg.dynaResource != null) {
         	mustnonull(wcfg.dynaResource.handler, "html-service.json/dynaResource.handler is required.");
         	// loaded only if configured, as this requires optional jars, e.g. doctree.jserv's
         	// io.oz.sdoc.htmlsrv.ResPathsTier, which checks its port's url
-			((IResUpdater) Class.forName(wcfg.dynaResource.handler)
+			dynaRes = (IResUpdater) Class.forName(wcfg.dynaResource.handler)
 				.getDeclaredConstructor(IPort.class, IPort.class, Server.class)
-				.newInstance(HtmlPort.respaths, HtmlPort.doctree, server))
-				.onUpdate(wcfg);
+				.newInstance(HtmlPort.respaths, HtmlPort.doctree, server);
+			dynaRes.onUpdate(wcfg);
         }
 
         server.start();
+
+        Utils.logi("[HtmlServer] started on port %s, web-dist root: %s", wcfg.port, webroot);
+        Utils.logi("[HtmlServer] dynaResource handler: %s",
+        		dynaRes == null ? "not configured" : dynaRes.getClass().getName());
+        if (dynaRes != null)
+        	Utils.logi("%s", dynaRes); // the handler's resource report, e.g. ResPathsTier.toString()
+
+        // the pages' link, local ip only (a reverse proxy's ip / port is not known here yet)
+        String link = f("http://%s:%s/", JservLocalHandler.getLocalIp(), wcfg.port);
+        Utils.logi("[HtmlServer] %s", link);
+        try {
+        	QrTerminal.print(link, new QrProps(true));
+        } catch (WriterException e) {
+        	Utils.warn("[HtmlServer] Can't print the QR code of %s: %s", link, e.getMessage());
+        }
         return wcfg;
 	}
 
@@ -124,6 +148,7 @@ public class HtmlServer {
 
 		 ServletHolder aHolder = staticHolder("servlet0", absdir);
 		 servletHandler.addServlet(aHolder, "/");
+		 webroot = absdir;
 
 		 if (!isNull(wcfg.paths))
 		 for (StaticResource pth : wcfg.paths) {
@@ -131,6 +156,8 @@ public class HtmlServer {
 			 Utils.logi("%s: %s -> %s", pth.path, pth.resource, res);
 			 aHolder = staticHolder("servlet" + Math.random(), res);
 			 servletHandler.addServlet(aHolder, pth.path);
+			 if ("/*".equals(pth.path) || "/".equals(pth.path))
+				 webroot = res;
 		 }
 
 		 server.setHandler(servletHandler);
